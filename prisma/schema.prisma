@@ -16,11 +16,19 @@ datasource db {
 model company {
   id  Int @id @default(autoincrement())
   nameFa  String
-  nationalId  String
+  nationalId  String?
   desc  String?
-  img String
-  nameEn  String
+  img String?
+  nameEn  String?
   country String
+  mainAddress String?
+  website String?
+  province  String?
+  postalCode  String?
+  city  String?
+  registrationData  DateTime?
+  registrationNumber  DateTime?
+  email String?
   contacts  contact[]
   persons   person[]
   createdAt DateTime  @default(now())

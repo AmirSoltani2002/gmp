@@ -1,17 +1,43 @@
+import { Optional } from "@nestjs/common";
 import { IsOptional, IsString } from "class-validator";
 
 export class CreateCompanyDto {
     @IsString()
     nameFa: string;
     @IsString()
-    nationalId: string;
+    @Optional()
+    nationalId?: string;
     @IsString()
     @IsOptional()
     desc?: string;
     @IsString()
-    img: string;
+    @Optional()
+    img?: string;
     @IsString()
-    nameEn: string;
+    @Optional()
+    nameEn?: string;
     @IsString()
-    country: string;
+    @Optional()
+    country?: string;
+    @IsString()
+    @Optional()
+    mainAddress?: string;
+    @IsString()
+    @Optional()
+    website?: string;
+    @IsString()
+    @Optional()
+    province?: string;
+    @IsString()
+    @Optional()
+    postalCode?: string;
+    @IsString()
+    @Optional()
+    city?: string;
+    @IsString()
+    @Optional()
+    registrationData?: Date;
+    @IsString()
+    @Optional()
+    registrationNumber?: number;
 }
