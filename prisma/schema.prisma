@@ -20,14 +20,14 @@ model company {
   desc  String?
   img String?
   nameEn  String?
-  country String
+  country String?
   mainAddress String?
   website String?
   province  String?
   postalCode  String?
   city  String?
   registrationData  DateTime?
-  registrationNumber  DateTime?
+  registrationNumber  Int?
   email String?
   contacts  contact[]
   persons   person[]

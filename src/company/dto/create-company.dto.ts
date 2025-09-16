@@ -1,5 +1,5 @@
 import { Optional } from "@nestjs/common";
-import { IsOptional, IsString } from "class-validator";
+import { IsEmail, IsOptional, IsString } from "class-validator";
 
 export class CreateCompanyDto {
     @IsString()
@@ -40,4 +40,7 @@ export class CreateCompanyDto {
     @IsString()
     @Optional()
     registrationNumber?: number;
+    @IsEmail()
+    @IsOptional()
+    email?: string;
 }
