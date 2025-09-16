@@ -2,14 +2,15 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nes
 import { PersonService } from './person.service';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
-import { Roles, RolesNot } from 'src/auth/roles.decorator';
+import { Public, Roles, RolesNot } from 'src/auth/roles.decorator';
 import { ROLES } from 'src/common/interface';
 
 @Controller('person')
 export class PersonController {
   constructor(private readonly personService: PersonService) {}
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  //@Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Public()
   @Post()
   create(@Body() createPersonDto: CreatePersonDto) {
     return this.personService.create(createPersonDto);
