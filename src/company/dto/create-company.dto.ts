@@ -8,9 +8,6 @@ export class CreateCompanyDto {
     @Optional()
     nationalId?: string;
     @IsString()
-    @IsOptional()
-    desc?: string;
-    @IsString()
     @Optional()
     img?: string;
     @IsString()

@@ -17,7 +17,6 @@ model company {
   id  Int @id @default(autoincrement())
   nameFa  String
   nationalId  String?
-  desc  String?
   img String?
   nameEn  String?
   country String?
