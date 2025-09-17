@@ -71,13 +71,13 @@ export class CompanyController {
     return this.companyService.updateOneByUser(+req['user'].id, updateCompanyDto);
   }
 
-  @RolesNot([ROLES.SYSTEM, ROLES.IFDAMANAGER])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER])
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
     return this.companyService.update(+id, updateCompanyDto);
   }
 
-  @RolesNot([ROLES.SYSTEM])
+  @Roles([ROLES.SYSTEM])
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.companyService.remove(+id);

@@ -2,7 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete, Request, BadRequestE
 import { SiteService } from './site.service';
 import { CreateSiteDto } from './dto/create-site.dto';
 import { UpdateSiteDto } from './dto/update-site.dto';
-import { Roles, RolesNot } from 'src/auth/roles.decorator';
+import { Roles } from 'src/auth/roles.decorator';
 import { ROLES } from 'src/common/interface';
 
 @Controller('site')
@@ -27,7 +27,7 @@ export class SiteController {
   }
 
   @Patch(':id')
-  @RolesNot([ROLES.SYSTEM, ROLES.IFDAMANAGER])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER])
   async update(@Param('id') id: string, @Body() UpdateSiteDto: UpdateSiteDto, @Request() req) {
     const thisSite = await this.siteService.findOne(+id);
     if(req['user'].role === ROLES.QRP && thisSite.companyId != req['user'].currentCompanyId)
@@ -36,7 +36,7 @@ export class SiteController {
   }
 
   @Delete(':id')
-  @RolesNot([ROLES.SYSTEM])
+  @Roles([ROLES.SYSTEM])
   remove(@Param('id') id: string) {
     return this.siteService.remove(+id);
   }
