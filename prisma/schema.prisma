@@ -30,6 +30,7 @@ model company {
   email String?
   contacts  contact[]
   persons   person[]
+  sites site[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -55,6 +56,21 @@ model person {
   currentCompanyId  Int
   role  String
   phone String
+}
+
+model site {
+  id  Int @id @default(autoincrement())
+  company company @relation(fields: [companyId], references: [id])
+  companyId  Int
+  country String?
+  city  String?
+  address String?
+  gpsLat  Float?
+  gpsLng  Float?
+  isPrimary Boolean @default(false)
+  GLN String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 

@@ -9,9 +9,10 @@ import { AuthModule } from './auth/auth.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { GlobalGuard } from './auth/auth.guard';
 import { PrismaExceptionFilter } from 'filters/prisma-exception.filter';
+import { SiteModule } from './site/site.module';
 
 @Module({
-  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule],
+  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule, SiteModule],
   controllers: [AppController],
   providers: [AppService,
     {

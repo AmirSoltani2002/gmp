@@ -39,9 +39,30 @@ export class CompanyController {
     return this.companyService.findOneUsers(+id);
   }
 
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Get('site/:id')
+  findOneSites(@Param('id') id: string) {
+    return this.companyService.findOneSites(+id);
+  }
+
   @Get('profile')
   findOneByUser(@Request() req) {
     return this.companyService.findOneByUser(+req['user'].id);
+  }
+
+  @Get('profile/contact')
+  findOneContactMy(@Request() req) {
+    return this.companyService.findOneContact(+req['user'].id);
+  }
+
+  @Get('profile/person')
+  findOneUsersMy(@Request() req) {
+    return this.companyService.findOneUsers(+req['user'].id);
+  }
+
+  @Get('profile/site')
+  findOneSitesMy(@Request() req) {
+    return this.companyService.findOneSites(+req['user'].id);
   }
 
   @RolesNot([ROLES.COMPANYOTHER, ROLES.IFDAUSER])
