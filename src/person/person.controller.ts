@@ -4,6 +4,7 @@ import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { Public, Roles, RolesNot } from 'src/auth/roles.decorator';
 import { ROLES } from 'src/common/interface';
+import { PasswordService } from 'src/auth/config';
 
 @Controller('person')
 export class PersonController {
@@ -12,7 +13,8 @@ export class PersonController {
   //@Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Public()
   @Post()
-  create(@Body() createPersonDto: CreatePersonDto) {
+  async create(@Body() createPersonDto: CreatePersonDto) {
+    createPersonDto.passwordHash = await PasswordService.hashPassword(createPersonDto.passwordHash)
     return this.personService.create(createPersonDto);
   }
 
