@@ -15,51 +15,62 @@ export class PersonController {
   @Post()
   async create(@Body() createPersonDto: CreatePersonDto) {
     createPersonDto.passwordHash = await PasswordService.hashPassword(createPersonDto.passwordHash)
-    return this.personService.create(createPersonDto);
+    const {passwordHash, ...rest} = await this.personService.create(createPersonDto);
+    return rest;
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get()
-  findAll() {
-    return this.personService.findAll();
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  async findAll() {
+    const people = await this.personService.findAll();
+    return people.map(({ passwordHash, ...rest }) => rest);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.personService.findOne(+id);
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  async findOne(@Param('id') id: string) {
+    const {passwordHash, ...rest} = await this.personService.findOne(+id);
+    return rest;
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get('username/:username')
-  findOneByUserName(@Param('id') username: string) {
-    return this.personService.findOneByUsername(username);
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  async findOneByUserName(@Param('username') username: string) {
+    const {passwordHash, ...rest} = await this.personService.findOneByUsername(username);
+    return rest;
   }
 
   @Get('profile')
-  findOneByProfile(@Request() req) {
-    return this.personService.findOne(+req['user'].id);
+  async findOneByProfile(@Request() req) {
+    const {passwordHash, ...rest} = await this.personService.findOne(+req['user'].id);
+    return rest;
   }
 
   @Patch('profile')
-  updateOne(@Request() req, @Body() updatePersonDto: UpdatePersonDto) {
-    return this.personService.update(+req['user'].id, updatePersonDto);
+  async updateOne(@Request() req, @Body() updatePersonDto: UpdatePersonDto) {
+    if(updatePersonDto.passwordHash)
+      updatePersonDto.passwordHash = await PasswordService.hashPassword(updatePersonDto.passwordHash)
+    const {passwordHash, ...rest} = await this.personService.update(+req['user'].id, updatePersonDto);
+    return rest;
   }
 
-  @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePersonDto: UpdatePersonDto) {
-    return this.personService.update(+id, updatePersonDto);
+  @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
+  async update(@Param('id') id: string, @Body() updatePersonDto: UpdatePersonDto) {
+    if(updatePersonDto.passwordHash)
+      updatePersonDto.passwordHash = await PasswordService.hashPassword(updatePersonDto.passwordHash)
+    const {passwordHash, ...rest} = await this.personService.update(+id, updatePersonDto);
+    return rest;
   }
 
-  @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
   @Delete('username/:username')
-  removeByUsername(@Param('id') username: string) {
+  @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
+  asynremoveByUsername(@Param('username') username: string) {
     return this.personService.removeByUsername(username);
   }
 
-  @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
   @Delete(':id')
+  @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
   remove(@Param('id') id: string) {
     return this.personService.remove(+id);
   }

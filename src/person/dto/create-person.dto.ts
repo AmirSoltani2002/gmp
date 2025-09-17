@@ -1,9 +1,10 @@
-import { IsNumber, IsString, Length } from "class-validator";
+import { IsNumber, IsString, IsStrongPassword, Length } from "class-validator";
 
 export class CreatePersonDto {
   @IsString()
   username: string;
   @IsString()
+  @IsStrongPassword()
   passwordHash: string;
   @IsString()
   name: string;

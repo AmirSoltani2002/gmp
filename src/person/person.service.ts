@@ -9,7 +9,7 @@ export class PersonService {
 
   create(createPersonDto: CreatePersonDto) {
     return this.db.person.create({
-      data: createPersonDto
+      data: createPersonDto,
     })
   }
 
