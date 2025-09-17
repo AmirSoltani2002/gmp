@@ -14,20 +14,20 @@ export class SiteController {
     return this.siteService.create(CreateSiteDto);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get()
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   findAll() {
     return this.siteService.findAll();
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get(':id')
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   findOne(@Param('id') id: string) {
     return this.siteService.findOne(+id);
   }
 
-  @RolesNot([ROLES.SYSTEM, ROLES.IFDAMANAGER])
   @Patch(':id')
+  @RolesNot([ROLES.SYSTEM, ROLES.IFDAMANAGER])
   async update(@Param('id') id: string, @Body() UpdateSiteDto: UpdateSiteDto, @Request() req) {
     const thisSite = await this.siteService.findOne(+id);
     if(req['user'].role === ROLES.QRP && thisSite.companyId != req['user'].currentCompanyId)
@@ -35,8 +35,8 @@ export class SiteController {
     return this.siteService.update(+id, UpdateSiteDto);
   }
 
-  @RolesNot([ROLES.SYSTEM])
   @Delete(':id')
+  @RolesNot([ROLES.SYSTEM])
   remove(@Param('id') id: string) {
     return this.siteService.remove(+id);
   }
