@@ -20,7 +20,7 @@ async function bootstrap() {
   });
   const config = new DocumentBuilder()
     .setTitle('UserInfo APIs')
-    .setDescription('Backend service API documentatio')
+    .setDescription('Backend service API documentation')
     .setVersion('1.0')
     .build();
 
