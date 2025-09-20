@@ -1,4 +1,4 @@
-import { IsNumber, IsString, IsStrongPassword, Length } from "class-validator";
+import { IsNumber, IsOptional, IsString, IsStrongPassword, Length } from "class-validator";
 
 export class CreatePersonDto {
   @IsString()
@@ -17,4 +17,7 @@ export class CreatePersonDto {
   @IsString()
   @Length(11)
   phone: string;
+  @IsString()
+  @IsOptional()
+  nezamCode?: string;
 }

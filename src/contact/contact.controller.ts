@@ -1,14 +1,18 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, UnauthorizedException } from '@nestjs/common';
 import { ContactService } from './contact.service';
 import { CreateContactDto } from './dto/create-contact.dto';
 import { UpdateContactDto } from './dto/update-contact.dto';
+import { Roles } from 'src/auth/roles.decorator';
+import { ROLES } from 'src/common/interface';
 
 @Controller('contact')
 export class ContactController {
   constructor(private readonly contactService: ContactService) {}
 
   @Post()
-  create(@Body() createContactDto: CreateContactDto) {
+  create(@Body() createContactDto: CreateContactDto, @Request() req) {
+    if(req['user'].role !== ROLES.SYSTEM && req['user'].currentCompanyId !== createContactDto.companyId)
+      throw new UnauthorizedException();
     return this.contactService.create(createContactDto);
   }
 
@@ -23,12 +27,22 @@ export class ContactController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateContactDto: UpdateContactDto) {
+  async update(@Param('id') id: string, @Body() updateContactDto: UpdateContactDto, @Request() req) {
+    if(req['user'].role !== ROLES.SYSTEM){
+      const thisContact = await this.contactService.findOne(+id);
+      if(req['user'].currentCompanyId !== thisContact.companyId)
+        throw new UnauthorizedException();
+    }
     return this.contactService.update(+id, updateContactDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Request() req) {
+    if(req['user'].role !== ROLES.SYSTEM){
+      const thisContact = await this.contactService.findOne(+id);
+      if(req['user'].currentCompanyId !== thisContact.companyId)
+        throw new UnauthorizedException();
+    }
     return this.contactService.remove(+id);
   }
 }

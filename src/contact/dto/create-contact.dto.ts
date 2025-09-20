@@ -1,4 +1,4 @@
-import { IsBoolean, IsNumber, IsString } from "class-validator";
+import { IsBoolean, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateContactDto {
     @IsNumber()
@@ -9,4 +9,7 @@ export class CreateContactDto {
     is_primary: boolean;
     @IsString()
     cityCode: string;
+    @IsString()
+    @IsOptional()
+    title?: string;
 }
