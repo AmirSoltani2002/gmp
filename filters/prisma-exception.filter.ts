@@ -1,45 +1,41 @@
+import { ArgumentsHost, BadRequestException, Catch, ConflictException, ExceptionFilter, NotFoundException } from '@nestjs/common';
 import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  NotFoundException,
-  BadRequestException,
-  ConflictException,
-} from '@nestjs/common';
-import { Response } from 'express';
-import { Prisma } from '@prisma/client';
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError,
+} from '@prisma/client/runtime/library';
 
-@Catch(Prisma.PrismaClientKnownRequestError)
+@Catch(
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError,
+)
 export class PrismaExceptionFilter implements ExceptionFilter {
-  catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
+  catch(exception: any, host: ArgumentsHost) {
+    console.error('🔥 Prisma Error caught:', exception); // Debug log
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
+    const response = ctx.getResponse();
+
     let httpException;
 
-    // ✅ Handle Prisma P2025 (Record not found)
-    switch (exception.code) {
-        case 'P2000':
-            httpException = new BadRequestException('Too Long Value');
-            break;
+    if (exception instanceof PrismaClientKnownRequestError) {
+      // Handle known request errors
+      switch (exception.code) {
         case 'P2002':
-            httpException = new ConflictException('Unique Constraint');
-            break;
-        case 'P2003':
-            httpException = new BadRequestException('FoeignKey Exception');
-            break;
-        case 'P2004':
-            httpException = new BadRequestException('Constraint Violation');
-            break;
-        case 'P2005':
-        case 'P2006':
-        case 'P2007':
-            httpException = new BadRequestException('Invalid Value Exception');
-            break;
+          httpException = new ConflictException('Unique Constraint Violation');
+          break;
         case 'P2025':
-            httpException = new NotFoundException();
-            break;
-        
+          httpException = new NotFoundException('Record not found');
+          break;
+        default:
+          httpException = new BadRequestException('Database error');
+      }
+    } else if (exception instanceof PrismaClientValidationError) {
+      httpException = new BadRequestException('Validation Error');
+    } else {
+      httpException = new BadRequestException('Unknown Prisma Error');
     }
+
     response.status(httpException.getStatus()).json({
       statusCode: httpException.getStatus(),
       message: httpException.message,
