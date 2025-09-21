@@ -8,8 +8,12 @@ export class PersonService {
   constructor(private readonly db: DatabaseService){}
 
   create(createPersonDto: CreatePersonDto) {
+    const {currentCompanyId, ...data} = createPersonDto;
     return this.db.person.create({
-      data: createPersonDto,
+      data: {
+        ...data,
+        currentCompany: {connect: {id: currentCompanyId}}
+      },
     })
   }
 
@@ -34,9 +38,13 @@ export class PersonService {
   }
 
   update(id: number, updatePersonDto: UpdatePersonDto) {
+    const {currentCompanyId, ...data} = updatePersonDto;
     return this.db.person.update({
       where: {id},
-      data: updatePersonDto
+      data: {
+        ...data,
+        currentCompany: currentCompanyId ? {connect: {id: currentCompanyId}} : undefined
+      }
     })
   }
 

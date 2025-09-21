@@ -8,8 +8,12 @@ export class SiteService {
   constructor(private readonly db: DatabaseService){}
 
   create(createSiteDto: CreateSiteDto) {
+    const {companyId, ...data} = createSiteDto;
     return this.db.site.create({
-      data: createSiteDto
+      data: {
+        ...data,
+        company: {connect: {id: companyId}}
+      }
     })
   }
 
@@ -27,9 +31,13 @@ export class SiteService {
   }
 
   update(id: number, updateSiteDto: UpdateSiteDto) {
+    const {companyId, ...data} = updateSiteDto;
     return this.db.site.update({
       where: {id},
-      data: updateSiteDto
+      data: {
+        ...data,
+        company: companyId ? {connect: {id: companyId}} : undefined
+      }
     })
   }
 

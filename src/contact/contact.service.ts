@@ -8,8 +8,12 @@ export class ContactService {
   constructor(private readonly db: DatabaseService){}
 
   create(createContactDto: CreateContactDto) {
+    const {companyId, ...data} = createContactDto;
     return this.db.contact.create({
-      data: createContactDto,
+      data: {
+        ...data,
+        company: {connect: {id: companyId}}
+      },
     })
   }
 
@@ -27,9 +31,13 @@ export class ContactService {
   }
 
   update(id: number, updateContactDto: UpdateContactDto) {
+    const {companyId, ...data} = updateContactDto;
     return this.db.contact.update({
       where: {id},
-      data: updateContactDto
+      data: {
+        ...data,
+        company: companyId ? {connect: {id: companyId}} : undefined
+      }
     })
   }
 

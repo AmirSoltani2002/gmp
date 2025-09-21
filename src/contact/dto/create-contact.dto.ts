@@ -6,7 +6,7 @@ export class CreateContactDto {
     @IsString()
     value: string;
     @IsBoolean()
-    is_primary: boolean;
+    isPrimary: boolean;
     @IsString()
     cityCode: string;
     @IsString()
