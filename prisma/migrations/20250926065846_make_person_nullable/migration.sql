@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "public"."person" ALTER COLUMN "name" DROP NOT NULL,
+ALTER COLUMN "familyName" DROP NOT NULL,
+ALTER COLUMN "phone" DROP NOT NULL;
