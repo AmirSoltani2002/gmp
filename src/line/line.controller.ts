@@ -3,16 +3,19 @@ import { LineService } from './line.service';
 import { CreateLineDto } from './dto/create-line.dto';
 import { UpdateLineDto } from './dto/update-line.dto';
 import { Roles } from 'src/auth/roles.decorator';
-import { ROLES } from 'add_rows';
+import { ROLES } from 'src/common/interface';
+import { SiteService } from 'src/site/site.service';
 
 @Controller('line')
 export class LineController {
-  constructor(private readonly lineService: LineService) {}
-    
+  constructor(private readonly lineService: LineService, 
+              private readonly siteService: SiteService) {}
   @Post()
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP])
-  create(@Body() createLineDto: CreateLineDto, @Request() req) {
-    if(req['user'].role === ROLES.QRP && createLineDto.companyId != req['user'].currentCompanyId)
+  async create(@Body() createLineDto: CreateLineDto, @Request() req) {
+    const site = await this.siteService.findOne(+createLineDto.siteId);
+    const companyId = site.companyId;
+    if(req['user'].role === ROLES.QRP && companyId != req['user'].currentCompanyId)
           throw new BadRequestException('The QRP User cannot Edit this Site');
     return this.lineService.create(createLineDto);
   }
@@ -31,9 +34,9 @@ export class LineController {
 
   @Patch(':id')
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
-  async update(@Param('id') id: string, @Body() updateLineDto: UpdateLineDto) {
+  async update(@Param('id') id: string, @Body() updateLineDto: UpdateLineDto, @Request() req) {
     const thisLine = await this.lineService.findOne(+id);
-    if([ROLES.QRP, ROLES.IFDAUSER].includes(req['user'].role) && thisLine.siteId != req['user'].currentCompanyId)
+    if([ROLES.QRP, ROLES.IFDAUSER].includes(req['user'].role) && thisLine.site.companyId != req['user'].currentCompanyId)
       throw new BadRequestException('The QRP User cannot Edit this Site');
     return this.lineService.update(+id, updateLineDto);
   }

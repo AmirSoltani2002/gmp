@@ -18,13 +18,11 @@ export class SiteController {
   }
 
   @Get()
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP])
   findAll() {
     return this.siteService.findAll();
   }
 
   @Get(':id')
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   findOne(@Param('id') id: string) {
     return this.siteService.findOne(+id);
   }

@@ -22,9 +22,9 @@ export class CreateLineDto {
     @IsBoolean()
     @IsOptional()
     isStrile?: boolean;
-    @IsBoolean()
+    @IsNumber()
     @IsOptional()
-    actual?: boolean;
+    actual?: number;
     @IsBoolean()
     @IsString()
     startFrom?: string;

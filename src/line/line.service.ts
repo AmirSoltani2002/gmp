@@ -18,18 +18,26 @@ export class LineService {
   }
 
   findAll() {
-    return this.db.line.findMany()
+    return this.db.line.findMany({
+      include: {site: {
+        include: {
+          company: true
+        }
+      }}
+    })
   }
 
   findOne(id: number) {
     return this.db.line.findUniqueOrThrow({
-      where: {id}
+      where: {id},
+      include: {site: true}
     })
   }
 
   update(id: number, updateLineDto: UpdateLineDto) {
     return this.db.line.update({
-      where: {id}
+      where: {id},
+      data: updateLineDto
     })
   }
 
