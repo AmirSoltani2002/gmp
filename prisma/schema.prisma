@@ -25,7 +25,7 @@ model company {
   province  String?
   postalCode  String?
   city  String?
-  registrationData  String?
+  registrationData  DateTime?
   registrationNumber  String?
   email String?
   contacts  contact[]

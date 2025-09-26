@@ -36,7 +36,7 @@ export class CreateCompanyDto {
     registrationData?: Date;
     @IsString()
     @Optional()
-    registrationNumber?: number;
+    registrationNumber?: string;
     @IsEmail()
     @IsOptional()
     email?: string;
