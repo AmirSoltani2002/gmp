@@ -63,6 +63,7 @@ model person {
 model site {
   id  Int @id @default(autoincrement())
   company company @relation(fields: [companyId], references: [id])
+  lines line[]
   companyId  Int
   country String?
   city  String?
@@ -71,6 +72,23 @@ model site {
   gpsLng  Float?
   isPrimary Boolean @default(false)
   GLN String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model line {
+  id  Int @id @default(autoincrement())
+  site  site @relation(fields: [siteId], references: [id])
+  siteId  Int
+  nameEn  String?
+  isActive  Boolean @default(true)
+  capacity  Int?
+  OEB Int?
+  nameFa  String?
+  isStrile  Boolean?
+  actual Int?
+  startFrom String?
+  opensDate DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
