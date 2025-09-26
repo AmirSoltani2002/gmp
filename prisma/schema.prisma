@@ -51,13 +51,13 @@ model person {
   id  Int @id @default(autoincrement())
   username  String  @unique
   passwordHash  String
-  name  String
-  familyName  String
+  name  String?
+  familyName  String?
   nezamCode String?
   currentCompany company @relation(fields: [currentCompanyId], references: [id])
   currentCompanyId  Int
   role  String
-  phone String
+  phone String?
 }
 
 model site {
