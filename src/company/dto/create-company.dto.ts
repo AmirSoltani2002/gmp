@@ -1,4 +1,4 @@
-import { IsEmail, IsOptional, IsString } from "class-validator";
+import { IsDate, IsDateString, IsEmail, IsOptional, IsString } from "class-validator";
 
 export class CreateCompanyDto {
     @IsString()
@@ -30,7 +30,7 @@ export class CreateCompanyDto {
     @IsString()
     @IsOptional()
     city?: string;
-    @IsString()
+    @IsDate()
     @IsOptional()
     registrationData?: Date;
     @IsString()
