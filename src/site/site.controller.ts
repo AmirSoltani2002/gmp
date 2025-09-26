@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, BadRequestException, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, BadRequestException } from '@nestjs/common';
 import { SiteService } from './site.service';
 import { CreateSiteDto } from './dto/create-site.dto';
 import { UpdateSiteDto } from './dto/update-site.dto';
@@ -40,7 +40,8 @@ export class SiteController {
 
   @Delete(':id')
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Request() req) {
+    const thisSite = await this.siteService.findOne(+id);
     if([ROLES.QRP, ROLES.IFDAUSER].includes(req['user'].role) && thisSite.companyId != req['user'].currentCompanyId)
       throw new BadRequestException('The QRP User cannot delete this Site');
     return this.siteService.remove(+id);
