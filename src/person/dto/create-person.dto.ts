@@ -7,16 +7,19 @@ export class CreatePersonDto {
   @IsStrongPassword()
   passwordHash: string;
   @IsString()
-  name: string;
+  @IsOptional()
+  name?: string;
   @IsString()
-  familyName: string;
+  @IsOptional()
+  familyName?: string;
   @IsNumber()
   currentCompanyId: number;
   @IsString()
   role: string;
   @IsString()
+  @IsOptional()
   @Length(11)
-  phone: string;
+  phone?: string;
   @IsString()
   @IsOptional()
   nezamCode?: string;

@@ -4,15 +4,26 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ROLES } from 'src/common/interface';
 import { Roles, RolesNot } from 'src/auth/roles.decorator';
+import { PersonService } from 'src/person/person.service';
+import { PasswordService } from 'src/auth/config';
 
 @Controller('company')
 export class CompanyController {
-  constructor(private readonly companyService: CompanyService) {}
+  constructor(private readonly companyService: CompanyService,
+              private readonly personService: PersonService,
+  ) {}
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Post()
-  create(@Body() createCompanyDto: CreateCompanyDto) {
-    return this.companyService.create(createCompanyDto);
+  async create(@Body() createCompanyDto: CreateCompanyDto) {
+    const company = await this.companyService.create(createCompanyDto);
+    const _user = await this.personService.create({
+      username: company.nationalId,
+      passwordHash: await PasswordService.hashPassword(company.nationalId),
+      currentCompanyId: company.id,
+      role: ROLES.QRP
+    })
+    return company
   }
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])

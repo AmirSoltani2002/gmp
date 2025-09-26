@@ -4,8 +4,7 @@ export class CreateCompanyDto {
     @IsString()
     nameFa: string;
     @IsString()
-    @IsOptional()
-    nationalId?: string;
+    nationalId: string;
     @IsString()
     @IsOptional()
     img?: string;

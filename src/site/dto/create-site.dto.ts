@@ -24,4 +24,10 @@ export class CreateSiteDto {
     @IsString()
     @IsOptional()
     GLN?: string;
+    @IsOptional()
+    @IsString()
+    name?: string;
+    @IsOptional()
+    @IsString()
+    provide?: string;
 }
