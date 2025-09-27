@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { LineService } from './line.service';
 import { CreateLineDto } from './dto/create-line.dto';
 import { UpdateLineDto } from './dto/update-line.dto';
@@ -43,7 +43,10 @@ export class LineController {
 
   @Delete(':id')
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
-  remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Request() req) {
+    const line = await this.lineService.findOne(+id);
+    if(line.site.companyId !== req['user'].companyId && req['user'].role !== ROLES.SYSTEM)
+      throw new UnauthorizedException();
     return this.lineService.remove(+id);
   }
 }

@@ -11,9 +11,11 @@ import { GlobalGuard } from './auth/auth.guard';
 import { PrismaExceptionFilter } from 'filters/prisma-exception.filter';
 import { SiteModule } from './site/site.module';
 import { LineModule } from './line/line.module';
+import { LineDosageModule } from './line-dosage/line-dosage.module';
+import { DosageModule } from './dosage/dosage.module';
 
 @Module({
-  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule, SiteModule, LineModule],
+  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule, SiteModule, LineModule, LineDosageModule, DosageModule],
   controllers: [AppController],
   providers: [AppService,
     {

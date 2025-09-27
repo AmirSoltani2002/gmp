@@ -78,6 +78,27 @@ model site {
   updatedAt DateTime  @updatedAt
 }
 
+model dosage {
+  id  Int @id @default(autoincrement())
+  emaCode String
+  category  String?
+  labelEn String?
+  labelFa String?
+  lineDosage lineDosage[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model lineDosage {
+  id Int @id @default(autoincrement())
+  dosage dosage @relation(fields: [dosageId], references: [id])
+  dosageId Int
+  line line @relation(fields: [lineId], references: [id])
+  lineId Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
 model line {
   id  Int @id @default(autoincrement())
   site  site @relation(fields: [siteId], references: [id])
@@ -91,6 +112,7 @@ model line {
   actual Int?
   startFrom String?
   opensDate DateTime?
+  lineDosage lineDosage[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }

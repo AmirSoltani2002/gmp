@@ -6,6 +6,7 @@ import { SiteModule } from 'src/site/site.module';
 @Module({
   controllers: [LineController],
   providers: [LineService],
-  imports: [SiteModule]
+  imports: [SiteModule],
+  exports: [LineService]
 })
 export class LineModule {}
