@@ -29,5 +29,5 @@ export class CreateSiteDto {
     name?: string;
     @IsOptional()
     @IsString()
-    provide?: string;
+    province?: string;
 }
