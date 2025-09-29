@@ -1,7 +1,6 @@
-import { IsBoolean, IsDate, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateLineDto {
-    @IsOptional()
     @IsNumber()
     siteId: number;
     @IsOptional()
@@ -25,10 +24,10 @@ export class CreateLineDto {
     @IsNumber()
     @IsOptional()
     actual?: number;
-    @IsString()
+    @IsOptional()
     @IsString()
     startFrom?: string;
     @IsOptional()
-    @IsDate()
+    @IsDateString()
     opensDate?: Date;
 }
