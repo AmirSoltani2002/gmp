@@ -33,7 +33,7 @@ export class CompanyService {
   findOneSites(id: number) {
     return this.db.company.findUniqueOrThrow({
       where: {id},
-      include: {sites: true}
+      include: {sites: {lines: true}}
     })
   }
 
