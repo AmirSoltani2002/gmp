@@ -37,13 +37,6 @@ export class CompanyService {
     })
   }
 
-  findOneLines(id: number) {
-    return this.db.company.findUniqueOrThrow({
-      where: {id},
-      include: {lines: true}
-    })
-  }
-  
   findOneContact(id: number) {
     return this.db.company.findUniqueOrThrow({
       where: {id},

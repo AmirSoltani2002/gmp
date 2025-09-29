@@ -55,11 +55,6 @@ export class CompanyController {
   findOneSites(@Param('id') id: string) {
     return this.companyService.findOneSites(+id);
   }
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
-  @Get('line/:id')
-  findOneLines(@Param('id') id: string) {
-    return this.companyService.findOneLines(+id);
-  }
   
   @Get('profile')
   findOneByUser(@Request() req) {
