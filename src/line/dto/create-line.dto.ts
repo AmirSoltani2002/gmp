@@ -29,5 +29,5 @@ export class CreateLineDto {
     startFrom?: string;
     @IsOptional()
     @IsDateString()
-    opensDate?: Date;
+    opensDate?: string;
 }
