@@ -17,6 +17,7 @@ model company {
   id  Int @id @default(autoincrement())
   nameFa  String
   nationalId  String
+  description String?
   img String?
   nameEn  String?
   country String?
@@ -25,14 +26,27 @@ model company {
   province  String?
   postalCode  String?
   city  String?
-  registrationData  DateTime?
-  registrationNumber  String?
+  registerationDate  DateTime?
+  registerationNumber  String?
   email String?
   contacts  contact[]
-  persons   person[]
+  currentPersons person[]
+  persons   company_person[]
   sites site[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+}
+
+model company_person {
+  id            Int     @id @default(autoincrement())
+  person        person  @relation(fields: [personId], references: [id])
+  personId      Int
+  company       company @relation(fields: [companyId], references: [id])
+  companyId     Int
+  licenseNumber String?
+  licenseDate   String?
+
+  @@unique([personId, companyId])
 }
 
 model contact {
@@ -58,6 +72,10 @@ model person {
   currentCompanyId  Int
   role  String
   phone String?
+  email String?
+  nationalId  String?
+  birthCity String?
+  companies company_person[]
 }
 
 model site {

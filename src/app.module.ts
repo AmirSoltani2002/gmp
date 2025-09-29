@@ -13,9 +13,10 @@ import { SiteModule } from './site/site.module';
 import { LineModule } from './line/line.module';
 import { LineDosageModule } from './line-dosage/line-dosage.module';
 import { DosageModule } from './dosage/dosage.module';
+import { CompanyPersonModule } from './company-person/company-person.module';
 
 @Module({
-  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule, SiteModule, LineModule, LineDosageModule, DosageModule],
+  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule, SiteModule, LineModule, LineDosageModule, DosageModule, CompanyPersonModule],
   controllers: [AppController],
   providers: [AppService,
     {

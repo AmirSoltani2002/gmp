@@ -29,12 +29,12 @@ export class CreateCompanyDto {
     @IsString()
     @IsOptional()
     city?: string;
-    @IsDate()
+    @IsDateString()
     @IsOptional()
-    registrationData?: Date;
+    registerationDate?: string;
     @IsString()
     @IsOptional()
-    registrationNumber?: string;
+    registerationNumber?: string;
     @IsEmail()
     @IsOptional()
     email?: string;
