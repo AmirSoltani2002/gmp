@@ -31,13 +31,13 @@ model company {
   email String?
   contacts  contact[]
   currentPersons person[]
-  persons   company_person[]
+  persons   companyPerson[]
   sites site[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
 
-model company_person {
+model companyPerson {
   id            Int     @id @default(autoincrement())
   person        person  @relation(fields: [personId], references: [id])
   personId      Int
@@ -75,7 +75,7 @@ model person {
   email String?
   nationalId  String?
   birthCity String?
-  companies company_person[]
+  companies companyPerson[]
 }
 
 model site {
