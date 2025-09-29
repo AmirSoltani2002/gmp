@@ -21,11 +21,11 @@ export class CreateLineDto {
     nameFa?: string;
     @IsBoolean()
     @IsOptional()
-    isStrile?: boolean;
+    isSterile?: boolean;
     @IsNumber()
     @IsOptional()
     actual?: number;
-    @IsBoolean()
+    @IsString()
     @IsString()
     startFrom?: string;
     @IsOptional()
