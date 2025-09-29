@@ -8,30 +8,30 @@ export class CompanyPersonService {
   constructor(private readonly db: DatabaseService) {}
 
   create(createCompanyPersonDto: CreateCompanyPersonDto) {
-    return this.db.company_person.create({
+    return this.db.companyPerson.create({
       data: createCompanyPersonDto,
     });
   }
 
   findAll() {
-    return this.db.company_person.findMany();
+    return this.db.companyPerson.findMany();
   }
 
   findOne(id: number) {
-    return this.db.company_person.findUnique({
+    return this.db.companyPerson.findUnique({
       where: { id },
     });
   }
 
   update(id: number, updateCompanyPersonDto: UpdateCompanyPersonDto) {
-    return this.db.company_person.update({
+    return this.db.companyPerson.update({
       where: { id },
       data: updateCompanyPersonDto,
     });
   }
 
   remove(id: number) {
-    return this.db.company_person.delete({
+    return this.db.companyPerson.delete({
       where: { id },
     });
   }
