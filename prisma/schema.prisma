@@ -45,7 +45,9 @@ model companyPerson {
   companyId     Int
   licenseNumber String?
   licenseDate   String?
-
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
   @@unique([personId, companyId])
 }
 
