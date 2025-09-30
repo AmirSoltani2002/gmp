@@ -30,6 +30,7 @@ model company {
   registerationNumber  String?
   email String?
   contacts  contact[]
+  currentPersons person[]
   persons   companyPerson[]
   sites site[]
   createdAt DateTime  @default(now())
@@ -44,27 +45,10 @@ model companyPerson {
   companyId     Int
   licenseNumber String?
   licenseDate   String?
-  isThere       Boolean @default(true)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-}
-
-model person {
-  id  Int @id @default(autoincrement())
-  username  String  @unique
-  passwordHash  String
-  name  String?
-  familyName  String?
-  nezamCode String?
-  role  String
-  phone String?
-  email String?
-  nationalId  String?
-  birthCity String?
-  companies companyPerson[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  @@unique([licenseNumber])
 }
 
 model contact {
@@ -75,6 +59,25 @@ model contact {
   isPrimary  Boolean  @default(false)
   title String?
   cityCode  String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model person {
+  id  Int @id @default(autoincrement())
+  username  String  @unique
+  passwordHash  String
+  name  String?
+  familyName  String?
+  nezamCode String?
+  currentCompany company? @relation(fields: [currentCompanyId], references: [id])
+  currentCompanyId  Int?
+  role  String
+  phone String?
+  email String?
+  nationalId  String?
+  birthCity String?
+  companies companyPerson[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
