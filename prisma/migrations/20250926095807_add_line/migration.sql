@@ -7,7 +7,7 @@ CREATE TABLE "public"."line" (
     "capacity" INTEGER,
     "OEB" INTEGER,
     "nameFa" TEXT,
-    "isStrile" BOOLEAN,
+    "isSterile" BOOLEAN,
     "actual" INTEGER,
     "startFrom" TEXT,
     "opensDate" TIMESTAMP(3),

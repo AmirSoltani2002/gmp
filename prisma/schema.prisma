@@ -126,7 +126,7 @@ model line {
   capacity  Int?
   OEB Int?
   nameFa  String?
-  isStrile  Boolean?
+  isSterile  Boolean?
   actual Int?
   startFrom String?
   opensDate DateTime?

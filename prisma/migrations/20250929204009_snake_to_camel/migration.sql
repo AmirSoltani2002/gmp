@@ -3,7 +3,6 @@
 
   - You are about to drop the column `registrationData` on the `company` table. All the data in the column will be lost.
   - You are about to drop the column `registrationNumber` on the `company` table. All the data in the column will be lost.
-  - You are about to drop the column `isStrile` on the `line` table. All the data in the column will be lost.
 
 */
 -- AlterTable
@@ -13,9 +12,6 @@ ADD COLUMN     "description" TEXT,
 ADD COLUMN     "registerationDate" TIMESTAMP(3),
 ADD COLUMN     "registerationNumber" TEXT;
 
--- AlterTable
-ALTER TABLE "public"."line" DROP COLUMN "isStrile",
-ADD COLUMN     "isSterile" BOOLEAN;
 
 -- AlterTable
 ALTER TABLE "public"."person" ADD COLUMN     "birthCity" TEXT,

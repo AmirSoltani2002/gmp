@@ -30,7 +30,7 @@ export class CreateLineDto {
     
     @IsOptional()
     @IsBoolean()
-    isStrile?: boolean;
+    isSterile?: boolean;
     
     @IsOptional()
     @IsNumber()
