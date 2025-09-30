@@ -47,8 +47,8 @@ model companyPerson {
   licenseDate   String?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  
-  @@unique([personId, companyId])
+
+  @@unique([licenseNumber])
 }
 
 model contact {
