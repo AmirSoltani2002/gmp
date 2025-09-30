@@ -68,8 +68,8 @@ model person {
   name  String?
   familyName  String?
   nezamCode String?
-  currentCompany company @relation(fields: [currentCompanyId], references: [id])
-  currentCompanyId  Int
+  currentCompany company? @relation(fields: [currentCompanyId], references: [id])
+  currentCompanyId  Int?
   role  String
   phone String?
   email String?
