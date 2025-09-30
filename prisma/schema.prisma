@@ -14,41 +14,59 @@ datasource db {
 }
 
 model company {
-  id  Int @id @default(autoincrement())
-  nameFa  String
-  nationalId  String
-  description String?
-  img String?
-  nameEn  String?
-  country String?
-  mainAddress String?
-  website String?
-  province  String?
-  postalCode  String?
-  city  String?
-  registerationDate  DateTime?
-  registerationNumber  String?
-  email String?
-  contacts  contact[]
-  currentPersons person[]
-  persons   companyPerson[]
-  sites site[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           Int             @id @default(autoincrement())
+  nameFa       String
+  nationalId   String
+  description  String?
+  img          String?
+  nameEn       String?
+  country      String?
+  mainAddress  String?
+  website      String?
+  province     String?
+  postalCode   String?
+  city         String?
+  registerationDate DateTime?
+  registerationNumber String?
+  email        String?
+  contacts     contact[]
+  persons      companyPerson[]           // all history entries for this company
+  sites        site[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
 }
 
 model companyPerson {
-  id            Int     @id @default(autoincrement())
-  person        person  @relation(fields: [personId], references: [id])
+  id            Int       @id @default(autoincrement())
+  person        person    @relation(fields: [personId], references: [id])
   personId      Int
-  company       company @relation(fields: [companyId], references: [id])
+  company       company   @relation(fields: [companyId], references: [id])
   companyId     Int
   licenseNumber String?
   licenseDate   String?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  endedAt       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  @@unique([licenseNumber])
+  @@index([personId])
+  @@index([companyId])
+}
+
+model person {
+  id                Int             @id @default(autoincrement())
+  username          String          @unique
+  passwordHash      String
+  name              String?
+  familyName        String?
+  nezamCode         String?
+  companies         companyPerson[]  // history entries
+  role              String
+  phone             String?
+  email             String?
+  nationalId        String?
+  birthCity         String?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
 }
 
 model contact {
@@ -59,25 +77,6 @@ model contact {
   isPrimary  Boolean  @default(false)
   title String?
   cityCode  String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
-model person {
-  id  Int @id @default(autoincrement())
-  username  String  @unique
-  passwordHash  String
-  name  String?
-  familyName  String?
-  nezamCode String?
-  currentCompany company? @relation(fields: [currentCompanyId], references: [id])
-  currentCompanyId  Int?
-  role  String
-  phone String?
-  email String?
-  nationalId  String?
-  birthCity String?
-  companies companyPerson[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }

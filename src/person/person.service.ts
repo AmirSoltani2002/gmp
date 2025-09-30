@@ -7,56 +7,74 @@ import { DatabaseService } from 'src/database/database.service';
 export class PersonService {
   constructor(private readonly db: DatabaseService){}
 
-  create(createPersonDto: CreatePersonDto) {
-    const {currentCompanyId, ...data} = createPersonDto;
-    return this.db.person.create({
-      data: {
-        ...data,
-        currentCompany: {connect: {id: currentCompanyId}}
-      },
-    })
+  async create(createPersonDto: CreatePersonDto & { currentCompanyId?: number }) {
+    const { currentCompanyId, ...data } = createPersonDto;
+
+    // create person
+    const person = await this.db.person.create({ data });
+
+    // add current company if provided
+    if (currentCompanyId) {
+      await this.db.companyPerson.create({
+        data: { personId: person.id, companyId: currentCompanyId }
+      });
+    }
+
+    return person;
   }
 
   findAll() {
     return this.db.person.findMany({
-      include: {currentCompany: true}
-    })
+      include: { 
+        companies: { where: { endedAt: null }, include: { company: true } } 
+      } // only current company
+    });
   }
 
   findOne(id: number) {
     return this.db.person.findUniqueOrThrow({
-      where: {id},
-      include: {currentCompany: true}
-    })
+      where: { id },
+      include: { 
+        companies: { where: { endedAt: null }, include: { company: true } } 
+      }
+    });
   }
 
   findOneByUsername(username: string) {
     return this.db.person.findUniqueOrThrow({
-      where: {username},
-      include: {currentCompany: true}
-    })
+      where: { username },
+      include: { 
+        companies: { where: { endedAt: null }, include: { company: true } } 
+      }
+    });
   }
 
-  update(id: number, updatePersonDto: UpdatePersonDto) {
-    const {currentCompanyId, ...data} = updatePersonDto;
-    return this.db.person.update({
-      where: {id},
-      data: {
-        ...data,
-        currentCompany: currentCompanyId ? {connect: {id: currentCompanyId}} : undefined
-      }
-    })
+  async update(id: number, updatePersonDto: UpdatePersonDto & { currentCompanyId?: number }) {
+    const { currentCompanyId, ...data } = updatePersonDto;
+
+    const person = await this.db.person.update({ where: { id }, data });
+
+    if (currentCompanyId) {
+      // end previous current company
+      await this.db.companyPerson.updateMany({
+        where: { personId: id, endedAt: null },
+        data: { endedAt: new Date() }
+      });
+
+      // add new current company
+      await this.db.companyPerson.create({
+        data: { personId: id, companyId: currentCompanyId }
+      });
+    }
+
+    return person;
   }
 
   remove(id: number) {
-    return this.db.person.delete({
-      where: {id}
-    })
+    return this.db.person.delete({ where: { id } });
   }
 
   removeByUsername(username: string) {
-    return this.db.person.delete({
-      where: {username}
-    })
+    return this.db.person.delete({ where: { username } });
   }
 }

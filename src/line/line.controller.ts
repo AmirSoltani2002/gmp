@@ -15,8 +15,13 @@ export class LineController {
   async create(@Body() createLineDto: CreateLineDto, @Request() req) {
     const site = await this.siteService.findOne(+createLineDto.siteId);
     const companyId = site.companyId;
-    if(req['user'].role !== ROLES.SYSTEM && companyId != req['user'].currentCompanyId)
+  
+    // get current company of the user
+    const currentCompany = req['user'].companies.find(c => !c.endedAt)?.companyId;
+  
+    if(req['user'].role !== ROLES.SYSTEM && companyId != currentCompany)
           throw new BadRequestException('The QRP User cannot Edit this Site');
+  
     return this.lineService.create(createLineDto);
   }
 
@@ -36,8 +41,12 @@ export class LineController {
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
   async update(@Param('id') id: string, @Body() updateLineDto: UpdateLineDto, @Request() req) {
     const thisLine = await this.lineService.findOne(+id);
-    if(req['user'].role !== ROLES.SYSTEM && thisLine.site.companyId != req['user'].currentCompanyId)
+  
+    const currentCompany = req['user'].companies.find(c => !c.endedAt)?.companyId;
+  
+    if(req['user'].role !== ROLES.SYSTEM && thisLine.site.companyId != currentCompany)
       throw new BadRequestException('The QRP User cannot Edit this Site');
+  
     return this.lineService.update(+id, updateLineDto);
   }
 
@@ -45,8 +54,12 @@ export class LineController {
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
   async remove(@Param('id') id: string, @Request() req) {
     const line = await this.lineService.findOne(+id);
-    if(line.site.companyId !== req['user'].companyId && req['user'].role !== ROLES.SYSTEM)
+  
+    const currentCompany = req['user'].companies.find(c => !c.endedAt)?.companyId;
+  
+    if(line.site.companyId !== currentCompany && req['user'].role !== ROLES.SYSTEM)
       throw new UnauthorizedException();
+  
     return this.lineService.remove(+id);
   }
 }

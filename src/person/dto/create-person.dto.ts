@@ -3,33 +3,44 @@ import { IsEmail, IsNumber, IsOptional, IsString, IsStrongPassword, Length } fro
 export class CreatePersonDto {
   @IsString()
   username: string;
+  
   @IsString()
   @IsStrongPassword()
   passwordHash: string;
+  
   @IsString()
   @IsOptional()
   name?: string;
+  
   @IsString()
   @IsOptional()
   familyName?: string;
-  @IsNumber()
-  @IsOptional()
-  currentCompanyId?: number;
+  
+  // Remove this:
+  // @IsNumber()
+  // @IsOptional()
+  // currentCompanyId?: number;
+  
   @IsString()
   role: string;
+  
   @IsString()
   @IsOptional()
   @Length(11)
   phone?: string;
+  
   @IsString()
   @IsOptional()
   nezamCode?: string;
+  
   @IsEmail()
   @IsOptional()
   email?: string;
+  
   @IsString()
   @IsOptional()
   nationalId?: string;
+  
   @IsString()
   @IsOptional()
   birthCity?: string;

@@ -11,8 +11,6 @@ export class ContactController {
 
   @Post()
   create(@Body() createContactDto: CreateContactDto, @Request() req) {
-    if(req['user'].role !== ROLES.SYSTEM && req['user'].currentCompanyId !== createContactDto.companyId)
-      throw new UnauthorizedException();
     return this.contactService.create(createContactDto);
   }
 
@@ -30,8 +28,6 @@ export class ContactController {
   async update(@Param('id') id: string, @Body() updateContactDto: UpdateContactDto, @Request() req) {
     if(req['user'].role !== ROLES.SYSTEM){
       const thisContact = await this.contactService.findOne(+id);
-      if(req['user'].currentCompanyId !== thisContact.companyId)
-        throw new UnauthorizedException();
     }
     return this.contactService.update(+id, updateContactDto);
   }
@@ -40,8 +36,6 @@ export class ContactController {
   async remove(@Param('id') id: string, @Request() req) {
     if(req['user'].role !== ROLES.SYSTEM){
       const thisContact = await this.contactService.findOne(+id);
-      if(req['user'].currentCompanyId !== thisContact.companyId)
-        throw new UnauthorizedException();
     }
     return this.contactService.remove(+id);
   }
