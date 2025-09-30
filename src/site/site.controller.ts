@@ -12,7 +12,7 @@ export class SiteController {
   @Post()
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP])
   create(@Body() createSiteDto: CreateSiteDto, @Request() req) {
-    if(req['user'].role === ROLES.QRP && createSiteDto.companyId != req['user'].currentCompanyId)
+    if(req['user'].role !== ROLES.SYSTEM && createSiteDto.companyId != req['user'].currentCompanyId)
       throw new BadRequestException('The QRP User cannot Edit this Site');
     return this.siteService.create(createSiteDto);
   }
@@ -31,7 +31,7 @@ export class SiteController {
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
   async update(@Param('id') id: string, @Body() UpdateSiteDto: UpdateSiteDto, @Request() req) {
     const thisSite = await this.siteService.findOne(+id);
-    if([ROLES.QRP, ROLES.IFDAUSER].includes(req['user'].role) && thisSite.companyId != req['user'].currentCompanyId)
+    if(req['user'].role !== ROLES.SYSTEM && thisSite.companyId != req['user'].currentCompanyId)
       throw new BadRequestException('The QRP User cannot Edit this Site');
     return this.siteService.update(+id, UpdateSiteDto);
   }
@@ -40,7 +40,7 @@ export class SiteController {
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
   async remove(@Param('id') id: string, @Request() req) {
     const thisSite = await this.siteService.findOne(+id);
-    if([ROLES.QRP, ROLES.IFDAUSER].includes(req['user'].role) && thisSite.companyId != req['user'].currentCompanyId)
+    if(req['user'].role !== ROLES.SYSTEM && thisSite.companyId != req['user'].currentCompanyId)
       throw new BadRequestException('The QRP User cannot delete this Site');
     return this.siteService.remove(+id);
   }

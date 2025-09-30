@@ -17,12 +17,6 @@ export class CompanyController {
   @Post()
   async create(@Body() createCompanyDto: CreateCompanyDto) {
     const company = await this.companyService.create(createCompanyDto);
-    const _user = await this.personService.create({
-      username: company.nationalId,
-      passwordHash: await PasswordService.hashPassword(company.nationalId),
-      currentCompanyId: company.id,
-      role: ROLES.QRP
-    })
     return company
   }
 

@@ -58,7 +58,7 @@ export class PersonController {
   @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
   async update(@Param('id') id: string, @Body() updatePersonDto: UpdatePersonDto, @Request() req) {
     const thisUser = await this.personService.findOne(+id);
-    if(req['user'].role === ROLES.QRP && thisUser.currentCompanyId != req['user'].currentCompanyId)
+    if(req['user'].role !== ROLES.SYSTEM && thisUser.currentCompanyId != req['user'].currentCompanyId)
           throw new BadRequestException('The QRP User cannot Edit this Site');
     if(updatePersonDto.passwordHash)
       updatePersonDto.passwordHash = await PasswordService.hashPassword(updatePersonDto.passwordHash)
