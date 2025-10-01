@@ -1,4 +1,4 @@
-import { IsEmail, IsNumber, IsOptional, IsString, IsStrongPassword, Length } from "class-validator";
+import { IsDateString, IsEmail, IsNumber, IsOptional, IsString, IsStrongPassword, Length } from "class-validator";
 
 export class CreatePersonDto {
   @IsString()
@@ -43,4 +43,8 @@ export class CreatePersonDto {
   @IsString()
   @IsOptional()
   birthCity?: string;
+  
+  @IsDateString()
+  @IsOptional()
+  birthDate?: string;
 }
