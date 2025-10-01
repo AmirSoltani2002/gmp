@@ -26,7 +26,11 @@ export class CompanyService {
   findOneUsers(id: number) {
     return this.db.company.findUniqueOrThrow({
       where: {id},
-      include: {persons: true}
+      include: {persons: {
+        include: {
+          person: true
+        }
+      }}
     })
   }
 
