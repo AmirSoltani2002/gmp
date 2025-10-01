@@ -22,10 +22,10 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       // Handle known request errors
       switch (exception.code) {
         case 'P2002':
-          httpException = new ConflictException('Unique Constraint Violation');
+          httpException = new ConflictException('Unique Constraint Violation ' + exception.meta?.target);
           break;
         case 'P2025':
-          httpException = new NotFoundException('Record not found');
+          httpException = new NotFoundException('Record not found ' + exception.meta?.target);
           break;
         default:
           httpException = new BadRequestException('Database error');
