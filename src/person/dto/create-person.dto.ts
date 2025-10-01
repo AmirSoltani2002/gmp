@@ -16,10 +16,9 @@ export class CreatePersonDto {
   @IsOptional()
   familyName?: string;
   
-  // Remove this:
-  // @IsNumber()
-  // @IsOptional()
-  // currentCompanyId?: number;
+  @IsNumber()
+  @IsOptional()
+  currentCompanyId?: number;
   
   @IsString()
   role: string;
