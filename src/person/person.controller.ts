@@ -63,12 +63,6 @@ export class PersonController {
     return rest;
   }
 
-  @Delete('username/:username')
-  @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
-  asynremoveByUsername(@Param('username') username: string) {
-    return this.personService.removeByUsername(username);
-  }
-
   @Delete(':id')
   @RolesNot([ROLES.IFDAUSER, ROLES.COMPANYOTHER])
   remove(@Param('id') id: string) {
