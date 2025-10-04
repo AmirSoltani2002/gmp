@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { Machine } from 'src/machine/entities/machine.entity';
 
 @Injectable()
 export class CompanyService {
@@ -43,6 +44,26 @@ export class CompanyService {
         }
       }}
     })
+  }
+
+  async findOneMachines(id: number) {
+    const nestedMachines = (await this.db.company.findUniqueOrThrow({
+      where: {id},
+      include: {sites: {
+        include: {
+          lines: {
+            include: {machines: {include: {machineType: true}}}
+          }, 
+          machines: {include: {machineType: true}}
+        }
+      }}
+    })).sites;
+    const siteMachines = nestedMachines.flatMap(x => x.machines);
+    const lineMachines = nestedMachines.flatMap(x => x.lines.flatMap(x => x.machines));
+    return {
+      siteLevel: siteMachines,
+      lineLevel: lineMachines,
+    }
   }
 
   findOneContact(id: number) {
