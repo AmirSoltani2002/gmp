@@ -5,7 +5,7 @@ import { UpdateMachineTypeDto } from './dto/update-machine-type.dto';
 import { Roles } from 'src/auth/roles.decorator';
 import { ROLES } from 'src/common/interface';
 
-@Roles([ROLES.SYSTEM, ROLES.SYSTEM])
+@Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER])
 @Controller('machine-type')
 export class MachineTypeController {
   constructor(private readonly machineTypeService: MachineTypeService) {}
@@ -16,11 +16,13 @@ export class MachineTypeController {
   }
 
   @Get()
+  @Roles([ROLES.CEO, ROLES.COMPANYOTHER, ROLES.IFDAMANAGER, ROLES.IFDAUSER, ROLES.QRP, ROLES.SYSTEM])
   findAll() {
     return this.machineTypeService.findAll();
   }
 
   @Get(':id')
+  @Roles([ROLES.CEO, ROLES.COMPANYOTHER, ROLES.IFDAMANAGER, ROLES.IFDAUSER, ROLES.QRP, ROLES.SYSTEM])
   findOne(@Param('id') id: string) {
     return this.machineTypeService.findOne(+id);
   }

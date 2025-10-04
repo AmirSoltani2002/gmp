@@ -5,5 +5,6 @@ import { MachineTypeController } from './machine-type.controller';
 @Module({
   controllers: [MachineTypeController],
   providers: [MachineTypeService],
+  exports: [MachineTypeService],
 })
 export class MachineTypeModule {}

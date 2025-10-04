@@ -21,6 +21,7 @@ export class DosageController {
     return this.dosageService.findAll();
   }
 
+  @Roles([ROLES.CEO, ROLES.COMPANYOTHER, ROLES.IFDAMANAGER, ROLES.IFDAUSER, ROLES.QRP, ROLES.SYSTEM])
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.dosageService.findOne(+id);
