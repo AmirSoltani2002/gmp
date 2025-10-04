@@ -1,59 +1,59 @@
 import { IsBoolean, IsDateString, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class CreateMachineDto {
-    @IsNumber()
     @IsOptional()
+    @IsNumber()
     siteId: number;
 
-    @IsNumber()
     @IsOptional()
+    @IsNumber()
     lineId: number;
 
     @IsNumber()
     machineTypeId: number;
     
-    @IsString()
     @IsOptional()
+    @IsString()
     country: string;
 
-    @IsString()
     @IsOptional()
+    @IsString()
     brand: string;
     
-    @IsString()
     @IsOptional()
+    @IsString()
     model: string;
 
-    @IsDateString()
     @IsOptional()
+    @IsDateString()
     manufactureDate: string;
     
-    @IsDateString()
     @IsOptional()
+    @IsDateString()
     installationDate: string;
     
-    @IsNumber()
     @IsOptional()
+    @IsNumber()
     nominalCapacity: number;
     
-    @IsNumber()
     @IsOptional()
+    @IsNumber()
     actualCapacity: number;
     
-    @IsBoolean()
     @IsOptional()
+    @IsBoolean()
     DQ: boolean;
     
-    @IsBoolean()
     @IsOptional()
+    @IsBoolean()
     IQ: boolean;
     
-    @IsBoolean()
     @IsOptional()
+    @IsBoolean()
     OQ: boolean;
     
-    @IsBoolean()
     @IsOptional()
+    @IsBoolean()
     PQ: boolean;
     
 
