@@ -30,6 +30,6 @@ async function bootstrap() {
   SwaggerModule.setup('api-docs', app, document);
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new PrismaExceptionFilter());
-  await app.listen(process.env.PORT ?? 8000);
+  await app.listen(process.env.PORT ?? 8000, '0.0.0.0');
 }
 bootstrap();
