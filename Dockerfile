@@ -1,7 +1,7 @@
 # Stage 1: Builder
 FROM node:18 AS builder
 
-WORKDIR /app
+WORKDIR /
 
 COPY package*.json ./
 RUN npm install
@@ -12,12 +12,12 @@ RUN npm run build
 # Stage 2: Runner
 FROM node:18-alpine
 
-WORKDIR /app
+WORKDIR /
 
-COPY --from=builder /app/package*.json ./
+COPY --from=builder /package*.json ./
 RUN npm install --omit=dev
 
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /dist ./dist
 
 EXPOSE 8000
 
