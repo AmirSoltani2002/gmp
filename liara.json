@@ -2,7 +2,6 @@
     "app":"gmp-api",
     "port":8000,
     "build":{
-        "command": "npm run build",
         "location":"iran"
     },
     "disks":[]
