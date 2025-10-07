@@ -8,7 +8,7 @@ import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { GlobalGuard } from './auth/auth.guard';
-import { PrismaExceptionFilter } from 'filters/prisma-exception.filter';
+import { PrismaExceptionFilter } from 'src/filters/prisma-exception.filter';
 import { SiteModule } from './site/site.module';
 import { LineModule } from './line/line.module';
 import { LineDosageModule } from './line-dosage/line-dosage.module';
