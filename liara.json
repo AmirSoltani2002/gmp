@@ -1,5 +1,4 @@
 {
-    "platform": "node",
     "app":"gmp-api",
     "port":8000,
     "build":{
