@@ -7,6 +7,8 @@ COPY package*.json ./
 RUN npm install
 
 COPY . .
+# Generate prisma client
+RUN npx prisma generate
 RUN npm run build
 
 # Stage 2: Runner
@@ -15,9 +17,9 @@ FROM node:18-alpine
 WORKDIR /app
 
 COPY --from=builder /app/package*.json ./
-RUN npm install --omit=dev
-
+COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
 
 EXPOSE 8000
 
