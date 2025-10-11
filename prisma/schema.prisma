@@ -172,3 +172,15 @@ model machine {
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 }
+
+model drug {
+  id                Int @id @default(autoincrement())
+  drugIndexName     String
+  genericName       String
+  genericCode       String
+  ATC               String
+  officialCode      String?
+  productType       String
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+}

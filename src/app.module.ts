@@ -16,9 +16,10 @@ import { DosageModule } from './dosage/dosage.module';
 import { CompanyPersonModule } from './company-person/company-person.module';
 import { MachineTypeModule } from './machine-type/machine-type.module';
 import { MachineModule } from './machine/machine.module';
+import { DrugModule } from './drug/drug.module';
 
 @Module({
-  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule, SiteModule, LineModule, LineDosageModule, DosageModule, CompanyPersonModule, MachineTypeModule, MachineModule],
+  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule, SiteModule, LineModule, LineDosageModule, DosageModule, CompanyPersonModule, MachineTypeModule, MachineModule, DrugModule],
   controllers: [AppController],
   providers: [AppService,
     {
