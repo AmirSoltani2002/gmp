@@ -3,7 +3,6 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { DatabaseService } from 'src/database/database.service';
 import { FindAllCompanyDto } from './dto/find-all-company.dto';
-import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CompanyService {
@@ -22,9 +21,9 @@ export class CompanyService {
     const where = q
       ? {
           OR: [
-            { nameFa: { contains: q, mode: Prisma.QueryMode.insensitive } },
-            { nameEn: { contains: q, mode: Prisma.QueryMode.insensitive } },
-            { nationalId: { contains: q, mode: Prisma.QueryMode.insensitive } },
+            { nameFa: { contains: q } },
+            { nameEn: { contains: q } },
+            { nationalId: { contains: q } },
           ],
         }
       : {};
