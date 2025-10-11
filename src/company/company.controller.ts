@@ -1,11 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ROLES } from 'src/common/interface';
 import { Roles, RolesNot } from 'src/auth/roles.decorator';
 import { PersonService } from 'src/person/person.service';
-import { PasswordService } from 'src/auth/config';
+import { FindAllCompanyDto } from './dto/find-all-company.dto';
 
 @Controller('company')
 export class CompanyController {
@@ -22,8 +22,8 @@ export class CompanyController {
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get()
-  findAll() {
-    return this.companyService.findAll();
+  findAll(@Query() query: FindAllCompanyDto) {
+    return this.companyService.findAll(query);
   }
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])

@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { DatabaseService } from 'src/database/database.service';
-import { Machine } from 'src/machine/entities/machine.entity';
+import { FindAllCompanyDto } from './dto/find-all-company.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CompanyService {
@@ -14,8 +15,49 @@ export class CompanyService {
     })
   }
 
-  findAll() {
-    return this.db.company.findMany()
+  async findAll(query: FindAllCompanyDto) {
+    const { page = 1, pageSize = 10, q } = query;
+    const skip = (page - 1) * pageSize;
+
+    const where = q
+      ? {
+          OR: [
+            { nameFa: { contains: q, mode: Prisma.QueryMode.insensitive } },
+            { nameEn: { contains: q, mode: Prisma.QueryMode.insensitive } },
+            { nationalId: { contains: q, mode: Prisma.QueryMode.insensitive } },
+          ],
+        }
+      : {};
+
+    const include =
+      pageSize < 50
+        ? {
+            persons: {
+              include: {
+                person: true,
+              },
+            },
+          }
+        : undefined;
+
+    const [companies, totalItems] = await this.db.$transaction([
+      this.db.company.findMany({
+        where,
+        include,
+        skip,
+        take: +pageSize,
+      }),
+      this.db.company.count({ where }),
+    ]);
+
+    const totalPages = Math.ceil(totalItems / pageSize);
+
+    return {
+      data: companies,
+      totalItems,
+      totalPages,
+      currentPage: +page,
+    };
   }
 
   findOne(id: number) {
