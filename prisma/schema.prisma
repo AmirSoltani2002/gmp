@@ -33,6 +33,10 @@ model company {
   contacts     contact[]
   persons      companyPerson[]           // all history entries for this company
   sites        site[]
+  brandOwnerDrugs companyDrug[] @relation("BrandOwnerCompany")
+  supplierDrugs   companyDrug[] @relation("SupplierCompany")
+  producerDrugs   companyDrug[] @relation("ProducerCompany")
+
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 }
@@ -181,6 +185,32 @@ model drug {
   ATC               String
   officialCode      String?
   productType       String
+  companyDrugs      companyDrug[]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+}
+
+model companyDrug {
+  id            Int       @id @default(autoincrement())
+  drug          drug    @relation(fields: [drugId], references: [id])
+  drugId        Int
+  brandOwner    company   @relation("BrandOwnerCompany", fields: [brandOwnerId], references: [id])
+  brandOwnerId  Int
+  IRC           String
+  brandNameEn   String
+  brandNameFa   String?
+  packageCount  Float?
+  isBulk        Boolean?
+  isTemp        Boolean?
+  status        String
+  supplier      company  @relation("SupplierCompany", fields: [supplierId], references: [id])
+  supplierId    Int
+  producer      company  @relation("ProducerCompany", fields: [producerId], references: [id])
+  producerId    Int
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([drugId])
+  @@index([brandOwnerId])
 }
