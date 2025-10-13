@@ -23,8 +23,8 @@ export class DrugService {
     const where = q
       ? {
           OR: [
-            { drugIndexName: { contains: q } },
-            { genericName: { contains: q } },
+            { drugIndexName: { contains: q, mode: 'insensitive' as const } },
+            { genericName: { contains: q, mode: 'insensitive' as const } },
           ],
         }
       : {};
@@ -32,7 +32,7 @@ export class DrugService {
     const [data, total] = await Promise.all([
       this.db.drug.findMany({
         where,
-        skip: (page - 1) * pageSize,
+        skip,
         take: pageSize,
         orderBy: {
           [sortBy]: sortOrder,
