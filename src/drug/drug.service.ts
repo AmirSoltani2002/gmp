@@ -19,7 +19,7 @@ export class DrugService {
     sortOrder: 'asc' | 'desc' = 'asc',
     filter: any = {},
   ) {
-    const where: Prisma.drugWhereInput = {};
+    const where = {};
 
     for (const key in filter) {
       if (Object.prototype.hasOwnProperty.call(filter, key)) {
