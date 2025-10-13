@@ -29,9 +29,9 @@ export class DrugController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
     @Query('sortBy', new DefaultValuePipe('id')) sortBy: string,
     @Query('sortOrder', new DefaultValuePipe('asc')) sortOrder: 'asc' | 'desc',
-    @Query('filter') filter: any,
+    @Query('q') q: string,
   ) {
-    return this.drugService.findAll(page, limit, sortBy, sortOrder, filter);
+    return this.drugService.findAll(page, limit, sortBy, sortOrder, q);
   }
 
   @Get(':id')

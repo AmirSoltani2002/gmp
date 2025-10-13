@@ -14,27 +14,26 @@ export class DrugService {
 
   async findAll(
     page: number = 1,
-    limit: number = 10,
+    pageSize: number = 10,
     sortBy: string = 'id',
     sortOrder: 'asc' | 'desc' = 'asc',
-    filter: any = {},
+    q: string = '',
   ) {
-    const where = {};
-
-    for (const key in filter) {
-      if (Object.prototype.hasOwnProperty.call(filter, key)) {
-        where[key] = {
-          contains: filter[key],
-          mode: 'insensitive',
-        };
-      }
-    }
-
+    const skip = (page - 1) * pageSize;
+    const where = q
+      ? {
+          OR: [
+            { drugIndexName: { contains: q } },
+            { genericName: { contains: q } },
+          ],
+        }
+      : {};
+    
     const [data, total] = await Promise.all([
       this.db.drug.findMany({
         where,
-        skip: (page - 1) * limit,
-        take: limit,
+        skip: (page - 1) * pageSize,
+        take: pageSize,
         orderBy: {
           [sortBy]: sortOrder,
         },
@@ -46,7 +45,7 @@ export class DrugService {
       data,
       total,
       page,
-      limit,
+      pageSize,
     };
   }
 
