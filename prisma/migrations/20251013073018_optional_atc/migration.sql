@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "drug" ALTER COLUMN "ATC" DROP NOT NULL;
