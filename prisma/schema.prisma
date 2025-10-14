@@ -36,6 +36,7 @@ model company {
   brandOwnerDrugs companyDrug[] @relation("BrandOwnerCompany")
   supplierDrugs   companyDrug[] @relation("SupplierCompany")
   producerDrugs   companyDrug[] @relation("ProducerCompany")
+  request126s     request126[]
 
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
@@ -58,21 +59,23 @@ model companyPerson {
 }
 
 model person {
-  id                Int             @id @default(autoincrement())
-  username          String          @unique
-  passwordHash      String
-  name              String?
-  familyName        String?
-  nezamCode         String?
-  companies         companyPerson[]  // history entries
-  role              String
-  phone             String?
-  email             String?
-  nationalId        String?
-  birthCity         String?
-  birthDate         DateTime?
-  createdAt         DateTime         @default(now())
-  updatedAt         DateTime         @updatedAt
+  id                 Int             @id @default(autoincrement())
+  username           String          @unique
+  passwordHash       String
+  name               String?
+  familyName         String?
+  nezamCode          String?
+  companies          companyPerson[]  // history entries
+  request126Acted    request126History[] @relation("Actor")
+  request126Assigned request126History[] @relation("Assignee")
+  role               String
+  phone              String?
+  email              String?
+  nationalId         String?
+  birthCity          String?
+  birthDate          DateTime?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
 }
 
 model contact {
@@ -142,6 +145,7 @@ model line {
   opensDate DateTime?
   lineDosage lineDosage[]
   machines   machine[]
+  request126s     request126[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -184,6 +188,7 @@ model drug {
   genericCode       String
   ATC               String?
   companyDrugs      companyDrug[]
+  request126s     request126[]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 }
@@ -211,4 +216,40 @@ model companyDrug {
 
   @@index([drugId])
   @@index([brandOwnerId])
+}
+
+model request126 {
+  id               Int     @id @default(autoincrement())
+  type             String
+  companyId        Int
+  company          company @relation(fields: [companyId],   references: [id])
+  lineId           Int
+  line             line    @relation(fields: [lineId],      references: [id])
+  drugId           Int
+  drug             drug    @relation(fields: [drugId],      references: [id])
+  drugOEB_declared Int
+  drugOEL_declared Float
+
+  history       request126History[]
+
+  closedAt      DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model request126History {
+  id            Int        @id @default(autoincrement())
+  requestId     Int
+  request       request126 @relation(fields: [requestId], references: [id])
+  actorId       Int
+  actor         person     @relation("Actor", fields: [actorId],   references: [id])
+  action        String
+  fromStatus    String
+  toStatus      String
+  toAssigneeId  Int
+  toAssignee    person     @relation("Assignee", fields: [toAssigneeId], references: [id])
+  message       String?
+  endedAt       DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

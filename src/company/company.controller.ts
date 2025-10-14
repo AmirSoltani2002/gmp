@@ -54,6 +54,11 @@ export class CompanyController {
   findOneCompany(@Param('id') id: string) {
     return this.companyService.findOneMachines(+id);
   }
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Get('request126/:id')
+  findOneRequest126(@Param('id') id: string) {
+    return this.companyService.findOneRequest126s(+id);
+  }
   
   @Get('profile')
   findOneByUser(@Request() req) {
