@@ -55,7 +55,7 @@ export class CompanyController {
     return this.companyService.findOneMachines(+id);
   }
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
-  @Get('machine/:id')
+  @Get('drug/:id')
   findOneDrug(@Param('id') id: string) {
     return this.companyService.findOneDrugs(+id);
   }
