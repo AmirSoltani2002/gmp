@@ -118,7 +118,8 @@ export class CompanyService {
       include: {brandOwnerDrugs: {
         include: {
           drug: true,
-          supplier: true
+          supplier: true,
+          producer: true,
         }
       }}
     })
