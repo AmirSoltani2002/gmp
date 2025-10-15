@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  DefaultValuePipe,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { CompanyDrugService } from './company-drug.service';
 import { CreateCompanyDrugDto } from './dto/create-company-drug.dto';
 import { UpdateCompanyDrugDto } from './dto/update-company-drug.dto';
@@ -13,22 +24,35 @@ export class CompanyDrugController {
   }
 
   @Get()
-  findAll() {
-    return this.companyDrugService.findAll();
+  findAll(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('pageSize', new DefaultValuePipe(10), ParseIntPipe) pageSize: number,
+    @Query('sortBy', new DefaultValuePipe('id')) sortBy: string,
+    @Query('sortOrder', new DefaultValuePipe('asc')) sortOrder: 'asc' | 'desc',
+  ) {
+    return this.companyDrugService.findAll(
+      page,
+      pageSize,
+      sortBy,
+      sortOrder,
+    );
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.companyDrugService.findOne(+id);
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.companyDrugService.findOne(id);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompanyDrugDto: UpdateCompanyDrugDto) {
-    return this.companyDrugService.update(+id, updateCompanyDrugDto);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateCompanyDrugDto: UpdateCompanyDrugDto,
+  ) {
+    return this.companyDrugService.update(id, updateCompanyDrugDto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.companyDrugService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.companyDrugService.remove(id);
   }
 }

@@ -1,26 +1,55 @@
 import { Injectable } from '@nestjs/common';
 import { CreateCompanyDrugDto } from './dto/create-company-drug.dto';
 import { UpdateCompanyDrugDto } from './dto/update-company-drug.dto';
+import { DatabaseService } from 'src/database/database.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CompanyDrugService {
-  create(createCompanyDrugDto: CreateCompanyDrugDto) {
-    return 'This action adds a new companyDrug';
+  constructor(private readonly db: DatabaseService) {}
+
+  async create(createCompanyDrugDto: CreateCompanyDrugDto) {
+    return this.db.companyDrug.create({ data: createCompanyDrugDto });
   }
 
-  findAll() {
-    return `This action returns all companyDrug`;
+  async findAll(
+    page: number = 1,
+    pageSize: number = 10,
+    sortBy: string = 'id',
+    sortOrder: 'asc' | 'desc' = 'asc',
+  ) {
+    const skip = (page - 1) * pageSize;
+    const [data, total] = await Promise.all([
+      this.db.companyDrug.findMany({
+        skip: skip,
+        take: pageSize,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+      }),
+      this.db.companyDrug.count({ }),
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      pageSize,
+    };
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} companyDrug`;
+  async findOne(id: number) {
+    return this.db.companyDrug.findUnique({ where: { id } });
   }
 
-  update(id: number, updateCompanyDrugDto: UpdateCompanyDrugDto) {
-    return `This action updates a #${id} companyDrug`;
+  async update(id: number, updateCompanyDrugDto: UpdateCompanyDrugDto) {
+    return this.db.companyDrug.update({
+      where: { id },
+      data: updateCompanyDrugDto,
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} companyDrug`;
+  async remove(id: number) {
+    return this.db.companyDrug.delete({ where: { id } });
   }
 }

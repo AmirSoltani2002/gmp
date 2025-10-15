@@ -112,6 +112,17 @@ export class CompanyService {
       include: {request126s: true}
     })
   }
+  findOneDrugs(id: number) {
+    return this.db.company.findUniqueOrThrow({
+      where: {id},
+      include: {brandOwnerDrugs: {
+        include: {
+          drug: true,
+          supplier: true
+        }
+      }}
+    })
+  }
 
   findOneContact(id: number) {
     return this.db.company.findUniqueOrThrow({
