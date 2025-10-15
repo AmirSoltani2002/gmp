@@ -188,7 +188,7 @@ model drug {
   genericCode       String
   ATC               String?
   companyDrugs      companyDrug[]
-  request126s     request126[]
+  request126s       request126[]
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 }
@@ -200,6 +200,7 @@ model companyDrug {
   brandOwner    company   @relation("BrandOwnerCompany", fields: [brandOwnerId], references: [id])
   brandOwnerId  Int
   IRC           String
+  GTIN          String?
   brandNameEn   String
   brandNameFa   String?
   packageCount  Float?
@@ -208,8 +209,8 @@ model companyDrug {
   status        String
   supplier      company  @relation("SupplierCompany", fields: [supplierId], references: [id])
   supplierId    Int
-  producer      company  @relation("ProducerCompany", fields: [producerId], references: [id])
-  producerId    Int
+  producer      company? @relation("ProducerCompany", fields: [producerId], references: [id])
+  producerId    Int?
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
