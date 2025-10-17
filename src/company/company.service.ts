@@ -86,7 +86,32 @@ export class CompanyService {
       }}
     })
   }
-
+  findOneSitesByUser(id: number) {
+    return this.db.person.findUniqueOrThrow({
+      where: {id},
+      include: {
+        companies: {
+          // Prefer the current company (no endedAt). If multiple, get the latest by createdAt.
+          where: { endedAt: null },
+          orderBy: { createdAt: 'desc' },
+          take: 1,
+          include: {
+            company: {
+              include: {
+                sites: {
+                  include: {
+                    lines: true,
+                  }
+                }
+              }
+            }
+          }
+        },
+        
+      }
+    })
+  }
+  
   async findOneMachines(id: number) {
     const nestedMachines = (await this.db.company.findUniqueOrThrow({
       where: {id},

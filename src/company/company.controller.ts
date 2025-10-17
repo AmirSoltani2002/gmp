@@ -82,7 +82,7 @@ export class CompanyController {
 
   @Get('profile/site')
   findOneSitesMy(@Request() req) {
-    return this.companyService.findOneSites(+req['user'].id);
+    return this.companyService.findOneSitesByUser(+req['user'].id);
   }
 
   @RolesNot([ROLES.COMPANYOTHER, ROLES.IFDAUSER])
