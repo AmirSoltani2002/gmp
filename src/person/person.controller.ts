@@ -43,7 +43,17 @@ export class PersonController {
   @Get(':id')
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   async findOne(@Param('id') id: string) {
-    const {passwordHash, ...rest} = await this.personService.findOne(+id);
+    console.log('=== FINDONE BY ID DEBUG ===');
+    console.log('id param:', id, 'typeof:', typeof id);
+    const idNumber = parseInt(id, 10);
+    console.log('parsed id:', idNumber, 'typeof:', typeof idNumber, 'isNaN:', isNaN(idNumber));
+    console.log('===========================');
+    
+    if (isNaN(idNumber)) {
+      throw new BadRequestException('Invalid ID format');
+    }
+    
+    const {passwordHash, ...rest} = await this.personService.findOne(idNumber);
     return rest;
   }
 
@@ -56,9 +66,15 @@ export class PersonController {
 
   @Get('profile')
   async findOneByProfile(@Request() req) {
-    console.log({req: JSON.stringify(req, null, 4)})
+    console.log('=== DEBUG INFO ===');
+    console.log('req.user:', req['user']);
+    console.log('req.user.id:', req['user']?.id);
+    console.log('typeof req.user.id:', typeof req['user']?.id);
+    console.log('==================');
     
     const userId = this.validateUserId(req);
+    console.log('Validated userId:', userId, 'typeof:', typeof userId);
+    
     const {passwordHash, ...rest} = await this.personService.findOne(userId);
     return rest;
   }
