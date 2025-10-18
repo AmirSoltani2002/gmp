@@ -143,7 +143,7 @@ export class CompanyController {
   }
 
 
-  @Get(':id')
+  @Get('id/:id')
   async findOne(@Param('id') id: string, @Request() req) {
     if(await this.isUserForThisCompany(req, id)) {
       return this.companyService.findOne(+id);
