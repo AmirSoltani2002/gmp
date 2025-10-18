@@ -131,7 +131,8 @@ export class CompanyController {
   }
 
 
-  @Get('request126/:id')
+  @Get('requests/:id')
+  @Get('request126s/:id')
   async findOneRequest126(@Param('id') id: string, @Request() req) {
     if(await this.isUserForThisCompany(req, id)) {
       return this.companyService.findOneRequest126s(+id);

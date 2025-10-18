@@ -131,7 +131,7 @@ export class CompanyService {
       lineLevel: lineMachines,
     }
   }
-  findOneRequest126s(id: number) {
+  findOneRequest126s(id?: number) {
     return this.db.company.findUniqueOrThrow({
       where: {id},
       include: {request126s: true}
