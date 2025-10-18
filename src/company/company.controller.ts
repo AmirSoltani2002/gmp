@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -102,8 +102,16 @@ export class CompanyController {
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.companyService.findOne(+id);
+  async findOne(@Param('id') id: string, @Request() req) {
+    const userId = this.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const userCompanyId = user.companies?.[0]?.company?.id
+    if(user.role === ROLES.SYSTEM || userCompanyId.toString() === id) {
+      return this.companyService.findOne(+id);
+    } else {
+      throw new UnauthorizedException("This is not your company!")
+    }
+    
   }
 
   @RolesNot([ROLES.COMPANYOTHER, ROLES.IFDAUSER])
