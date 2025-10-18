@@ -100,7 +100,6 @@ export class CompanyController {
     return this.companyService.findOneRequest126s(+id);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req) {
     const userId = this.validateUserId(req);
