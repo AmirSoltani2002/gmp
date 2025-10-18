@@ -131,11 +131,19 @@ export class CompanyService {
       lineLevel: lineMachines,
     }
   }
-  findOneRequest126s(id?: number) {
-    return this.db.company.findUniqueOrThrow({
-      where: {id},
-      include: {request126s: true}
-    })
+  findOneRequest126s(id: string) {
+    if(id === 'all') {
+      return this.db.company.findMany({
+        include: {request126s: true}
+      })
+    } else {
+      const idNumber = Number(id)
+      if(isNaN(idNumber)){return null}
+      return this.db.company.findUniqueOrThrow({
+        where: {id: idNumber},
+        include: {request126s: true}
+      })
+    }
   }
   findOneDrugs(id: number) {
     return this.db.company.findUniqueOrThrow({

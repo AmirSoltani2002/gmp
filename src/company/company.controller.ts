@@ -135,7 +135,7 @@ export class CompanyController {
   @Get('request126s/:id')
   async findOneRequest126(@Param('id') id: string, @Request() req) {
     if(await this.isUserForThisCompany(req, id)) {
-      return this.companyService.findOneRequest126s(+id);
+      return this.companyService.findOneRequest126s(id);
     } else {
       throw new UnauthorizedException("This is not your company!")
     }
