@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Request, Query, BadRequestException } from '@nestjs/common';
 import { CompanyService } from './company.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
@@ -12,6 +12,20 @@ export class CompanyController {
   constructor(private readonly companyService: CompanyService,
               private readonly personService: PersonService,
   ) {}
+
+  private validateUserId(req: any): number {
+    const userId = req['user']?.id;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    
+    const userIdNumber = parseInt(userId, 10);
+    if (isNaN(userIdNumber)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    
+    return userIdNumber;
+  }
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Post()
@@ -67,28 +81,33 @@ export class CompanyController {
   
   @Get('profile')
   findOneByUser(@Request() req) {
-    return this.companyService.findOneByUser(+req['user'].id);
+    const userId = this.validateUserId(req);
+    return this.companyService.findOneByUser(userId);
   }
 
   @Get('profile/contact')
   findOneContactMy(@Request() req) {
-    return this.companyService.findOneContact(+req['user'].id);
+    const userId = this.validateUserId(req);
+    return this.companyService.findOneContact(userId);
   }
 
   @Get('profile/person')
   findOneUsersMy(@Request() req) {
-    return this.companyService.findOneUsers(+req['user'].id);
+    const userId = this.validateUserId(req);
+    return this.companyService.findOneUsers(userId);
   }
 
   @Get('profile/site')
   findOneSitesMy(@Request() req) {
-    return this.companyService.findOneSitesByUser(+req['user'].id);
+    const userId = this.validateUserId(req);
+    return this.companyService.findOneSitesByUser(userId);
   }
 
   @RolesNot([ROLES.COMPANYOTHER, ROLES.IFDAUSER])
   @Patch('profile')
   updateOneByUser(@Request() req, @Body() updateCompanyDto: UpdateCompanyDto) {
-    return this.companyService.updateOneByUser(+req['user'].id, updateCompanyDto);
+    const userId = this.validateUserId(req);
+    return this.companyService.updateOneByUser(userId, updateCompanyDto);
   }
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER])

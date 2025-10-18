@@ -10,6 +10,20 @@ import { PasswordService } from 'src/auth/config';
 export class PersonController {
   constructor(private readonly personService: PersonService) {}
 
+  private validateUserId(req: any): number {
+    const userId = req['user']?.id;
+    if (!userId) {
+      throw new BadRequestException('User ID not found in request');
+    }
+    
+    const userIdNumber = parseInt(userId, 10);
+    if (isNaN(userIdNumber)) {
+      throw new BadRequestException('Invalid user ID format');
+    }
+    
+    return userIdNumber;
+  }
+
   //@Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Public()
   @Post()
@@ -43,15 +57,19 @@ export class PersonController {
   @Get('profile')
   async findOneByProfile(@Request() req) {
     console.log({req: JSON.stringify(req, null, 4)})
-    const {passwordHash, ...rest} = await this.personService.findOne(+req['user'].id);
+    
+    const userId = this.validateUserId(req);
+    const {passwordHash, ...rest} = await this.personService.findOne(userId);
     return rest;
   }
 
   @Patch('profile')
   async updateOne(@Request() req, @Body() updatePersonDto: UpdatePersonDto) {
+    const userId = this.validateUserId(req);
+    
     if(updatePersonDto.passwordHash)
       updatePersonDto.passwordHash = await PasswordService.hashPassword(updatePersonDto.passwordHash)
-    const {passwordHash, ...rest} = await this.personService.update(+req['user'].id, updatePersonDto);
+    const {passwordHash, ...rest} = await this.personService.update(userId, updatePersonDto);
     return rest;
   }
 
