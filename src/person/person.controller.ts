@@ -42,16 +42,9 @@ export class PersonController {
 
   @Get('profile')
   async findOneByProfile(@Request() req) {
-    try{
-      const {passwordHash, ...rest} = await this.personService.findOne(+req['user'].id);
-      return rest;
-    } catch(e) {
-      return {
-        req,
-        e,
-      }
-    }
-    
+    console.log({req: JSON.stringify(req, null, 4)})
+    const {passwordHash, ...rest} = await this.personService.findOne(+req['user'].id);
+    return rest;
   }
 
   @Patch('profile')
