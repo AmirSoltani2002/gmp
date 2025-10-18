@@ -3,7 +3,7 @@ import { JwtService } from "@nestjs/jwt";
 import { jwtConstants } from "./config";
 import { Request } from "express";
 import { Reflector } from "@nestjs/core";
-import { Public, Roles, RolesNot } from 'src/auth/roles.decorator';
+import { Public, Roles, RolesNot, MethodPermissions } from 'src/auth/roles.decorator';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -79,10 +79,39 @@ export class RolesGuardNot implements CanActivate {
 }
 
 @Injectable()
+export class EnhancedRolesGuard implements CanActivate {
+  constructor(private reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const methodPermissions = this.reflector.getAllAndOverride(MethodPermissions, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    const request = context.switchToHttp().getRequest();
+    const method = request.method;
+    const { user } = request;
+
+    if (methodPermissions && methodPermissions[method]) {
+      return methodPermissions[method].includes(user?.role);
+    }
+
+    // Fallback to regular @Roles decorator
+    const requiredRoles = this.reflector.getAllAndOverride(Roles, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+
+    if (!requiredRoles) return true;
+    return requiredRoles.includes(user?.role);
+  }
+}
+
+@Injectable()
 export class GlobalGuard implements CanActivate {
   constructor(
     private readonly authGuard: AuthGuard,
-    private readonly rolesGuard: RolesGuard,
+    private readonly enhancedRolesGuard: EnhancedRolesGuard,
     private readonly rolesGuardNot: RolesGuardNot,
   ) {}
 
@@ -91,8 +120,8 @@ export class GlobalGuard implements CanActivate {
     const authResult = await this.authGuard.canActivate(context);
     if (!authResult) return false;
 
-    // Then run RolesGuard
-    return this.rolesGuard.canActivate(context) && this.rolesGuardNot.canActivate(context);
+    // Then run EnhancedRolesGuard (which handles both MethodPermissions and regular Roles)
+    return this.enhancedRolesGuard.canActivate(context) && this.rolesGuardNot.canActivate(context);
   }
 }
 

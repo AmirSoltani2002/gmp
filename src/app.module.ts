@@ -18,11 +18,29 @@ import { MachineTypeModule } from './machine-type/machine-type.module';
 import { MachineModule } from './machine/machine.module';
 import { DrugModule } from './drug/drug.module';
 import { CompanyDrugModule } from './company-drug/company-drug.module';
+import { Request126Module } from './request126/request126.module';
 
 @Module({
-  imports: [CompanyModule, ContactModule, PersonModule, DatabaseModule, AuthModule, SiteModule, LineModule, LineDosageModule, DosageModule, CompanyPersonModule, MachineTypeModule, MachineModule, DrugModule, CompanyDrugModule],
+  imports: [
+    CompanyModule,
+    ContactModule,
+    PersonModule,
+    DatabaseModule,
+    AuthModule,
+    SiteModule,
+    LineModule,
+    LineDosageModule,
+    DosageModule,
+    CompanyPersonModule,
+    MachineTypeModule,
+    MachineModule,
+    DrugModule,
+    CompanyDrugModule,
+    Request126Module,
+  ],
   controllers: [AppController],
-  providers: [AppService,
+  providers: [
+    AppService,
     {
       provide: APP_GUARD,
       useClass: GlobalGuard,
