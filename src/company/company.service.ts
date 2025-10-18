@@ -166,6 +166,9 @@ export class CompanyService {
           where: { endedAt: null },
           orderBy: { createdAt: 'desc' },
           take: 1,
+          include: {
+            company: true,
+          }
         }
       }
     })
