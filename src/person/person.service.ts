@@ -32,12 +32,6 @@ export class PersonService {
   }
 
   findOne(id: number) {
-    console.log('=== PERSON SERVICE DEBUG ===');
-    console.log('findOne called with id:', id);
-    console.log('typeof id:', typeof id);
-    console.log('isNaN(id):', isNaN(id));
-    console.log('============================');
-    
     return this.db.person.findUniqueOrThrow({
       where: { id },
       include: { 

@@ -39,15 +39,17 @@ export class PersonController {
     const people = await this.personService.findAll();
     return people.map(({ passwordHash, ...rest }) => rest);
   }
+  @Get('profile')
+  async findOneByProfile(@Request() req) {
+    const userId = this.validateUserId(req);
+    const {passwordHash, ...rest} = await this.personService.findOne(userId);
+    return rest;
+  }
 
   @Get(':id')
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   async findOne(@Param('id') id: string) {
-    console.log('=== FINDONE BY ID DEBUG ===');
-    console.log('id param:', id, 'typeof:', typeof id);
     const idNumber = parseInt(id, 10);
-    console.log('parsed id:', idNumber, 'typeof:', typeof idNumber, 'isNaN:', isNaN(idNumber));
-    console.log('===========================');
     
     if (isNaN(idNumber)) {
       throw new BadRequestException('Invalid ID format');
@@ -61,21 +63,6 @@ export class PersonController {
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   async findOneByUserName(@Param('username') username: string) {
     const {passwordHash, ...rest} = await this.personService.findOneByUsername(username);
-    return rest;
-  }
-
-  @Get('profile')
-  async findOneByProfile(@Request() req) {
-    console.log('=== DEBUG INFO ===');
-    console.log('req.user:', req['user']);
-    console.log('req.user.id:', req['user']?.id);
-    console.log('typeof req.user.id:', typeof req['user']?.id);
-    console.log('==================');
-    
-    const userId = this.validateUserId(req);
-    console.log('Validated userId:', userId, 'typeof:', typeof userId);
-    
-    const {passwordHash, ...rest} = await this.personService.findOne(userId);
     return rest;
   }
 

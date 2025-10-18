@@ -14,12 +14,6 @@ export class AuthService {
       throw new BadRequestException('Wrong Username or Password');
     const {passwordHash, ...rest} = user;
     
-    console.log('=== AUTH SERVICE DEBUG ===');
-    console.log('Original user:', user);
-    console.log('User id type:', typeof user.id);
-    console.log('Rest object:', rest);
-    console.log('Rest id type:', typeof rest.id);
-    console.log('==========================');
     
     return {token: await this.jwt.signAsync(rest)};
   }

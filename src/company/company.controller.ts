@@ -40,6 +40,12 @@ export class CompanyController {
     return this.companyService.findAll(query);
   }
 
+  @Get('profile')
+  findOneByUser(@Request() req) {
+    const userId = this.validateUserId(req);
+    return this.companyService.findOneByUser(userId);
+  }
+
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -79,12 +85,6 @@ export class CompanyController {
     return this.companyService.findOneRequest126s(+id);
   }
   
-  @Get('profile')
-  findOneByUser(@Request() req) {
-    const userId = this.validateUserId(req);
-    return this.companyService.findOneByUser(userId);
-  }
-
   @Get('profile/contact')
   findOneContactMy(@Request() req) {
     const userId = this.validateUserId(req);
