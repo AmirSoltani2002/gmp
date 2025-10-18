@@ -46,10 +46,22 @@ export class CompanyController {
     return this.companyService.findOneByUser(userId);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.companyService.findOne(+id);
+  @Get('profile/contact')
+  findOneContactMy(@Request() req) {
+    const userId = this.validateUserId(req);
+    return this.companyService.findOneContact(userId);
+  }
+
+  @Get('profile/person')
+  findOneUsersMy(@Request() req) {
+    const userId = this.validateUserId(req);
+    return this.companyService.findOneUsers(userId);
+  }
+
+  @Get('profile/site')
+  findOneSitesMy(@Request() req) {
+    const userId = this.validateUserId(req);
+    return this.companyService.findOneSitesByUser(userId);
   }
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
@@ -69,38 +81,29 @@ export class CompanyController {
   findOneSites(@Param('id') id: string) {
     return this.companyService.findOneSites(+id);
   }
+
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get('machine/:id')
   findOneCompany(@Param('id') id: string) {
     return this.companyService.findOneMachines(+id);
   }
+
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get('drug/:id')
   findOneDrug(@Param('id') id: string) {
     return this.companyService.findOneDrugs(+id);
   }
+
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Get('request126/:id')
   findOneRequest126(@Param('id') id: string) {
     return this.companyService.findOneRequest126s(+id);
   }
-  
-  @Get('profile/contact')
-  findOneContactMy(@Request() req) {
-    const userId = this.validateUserId(req);
-    return this.companyService.findOneContact(userId);
-  }
 
-  @Get('profile/person')
-  findOneUsersMy(@Request() req) {
-    const userId = this.validateUserId(req);
-    return this.companyService.findOneUsers(userId);
-  }
-
-  @Get('profile/site')
-  findOneSitesMy(@Request() req) {
-    const userId = this.validateUserId(req);
-    return this.companyService.findOneSitesByUser(userId);
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.companyService.findOne(+id);
   }
 
   @RolesNot([ROLES.COMPANYOTHER, ROLES.IFDAUSER])

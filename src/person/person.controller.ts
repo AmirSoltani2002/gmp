@@ -39,6 +39,7 @@ export class PersonController {
     const people = await this.personService.findAll();
     return people.map(({ passwordHash, ...rest }) => rest);
   }
+
   @Get('profile')
   async findOneByProfile(@Request() req) {
     const userId = this.validateUserId(req);
@@ -46,7 +47,14 @@ export class PersonController {
     return rest;
   }
 
-  @Get(':id')
+  @Get('username/:username')
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  async findOneByUserName(@Param('username') username: string) {
+    const {passwordHash, ...rest} = await this.personService.findOneByUsername(username);
+    return rest;
+  }
+
+  @Get('id/:id')
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   async findOne(@Param('id') id: string) {
     const idNumber = parseInt(id, 10);
@@ -56,13 +64,6 @@ export class PersonController {
     }
     
     const {passwordHash, ...rest} = await this.personService.findOne(idNumber);
-    return rest;
-  }
-
-  @Get('username/:username')
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
-  async findOneByUserName(@Param('username') username: string) {
-    const {passwordHash, ...rest} = await this.personService.findOneByUsername(username);
     return rest;
   }
 
