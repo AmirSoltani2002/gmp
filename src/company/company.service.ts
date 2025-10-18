@@ -158,7 +158,7 @@ export class CompanyService {
   }
 
   findOneByUser(id: number) {
-    return this.db.person.findFirstOrThrow({
+    return this.db.person.findUniqueOrThrow({
       where: {id},
       include: {
         companies: {
