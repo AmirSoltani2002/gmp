@@ -24,8 +24,8 @@ export class PersonController {
     return userIdNumber;
   }
 
-  //@Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
-  @Public()
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  // @Public()
   @Post()
   async create(@Body() createPersonDto: CreatePersonDto) {
     createPersonDto.passwordHash = await PasswordService.hashPassword(createPersonDto.passwordHash)

@@ -26,6 +26,13 @@ export class CompanyController {
     
     return userIdNumber;
   }
+  private async isUserForThisCompany(req: any, companyId: number | string): Promise<boolean> {
+    const userId = this.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const userCompanyId = user.companies?.[0]?.company?.id
+    return (user.role === ROLES.SYSTEM || userCompanyId.toString() === companyId.toString())
+    
+  }
 
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Post()
@@ -64,48 +71,80 @@ export class CompanyController {
     return this.companyService.findOneSitesByUser(userId);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  
   @Get('contact/:id')
-  findOneContact(@Param('id') id: string) {
-    return this.companyService.findOneContact(+id);
+  async findOneContact(@Param('id') id: string, @Request() req) {
+    if(await this.isUserForThisCompany(req, id)) {
+      return this.companyService.findOneContact(+id);
+    } else {
+      throw new UnauthorizedException("This is not your company!")
+    }
+    
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+
+  
   @Get('person/:id')
-  findOneUsers(@Param('id') id: string) {
-    return this.companyService.findOneUsers(+id);
+  async findOneUsers(@Param('id') id: string, @Request() req) {
+    if(await this.isUserForThisCompany(req, id)) {
+      return this.companyService.findOneUsers(+id);
+    } else {
+      throw new UnauthorizedException("This is not your company!")
+    }
+    
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+
+  
   @Get('site/:id')
-  findOneSites(@Param('id') id: string) {
-    return this.companyService.findOneSites(+id);
+  async findOneSites(@Param('id') id: string, @Request() req) {
+    if(await this.isUserForThisCompany(req, id)) {
+      return this.companyService.findOneSites(+id);
+    } else {
+      throw new UnauthorizedException("This is not your company!")
+    }
+    
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+
+  
   @Get('machine/:id')
-  findOneCompany(@Param('id') id: string) {
-    return this.companyService.findOneMachines(+id);
+  async findOneMachines(@Param('id') id: string, @Request() req) {
+    if(await this.isUserForThisCompany(req, id)) {
+      return this.companyService.findOneMachines(+id);
+    } else {
+      throw new UnauthorizedException("This is not your company!")
+    }
+    
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+
+  
   @Get('drug/:id')
-  findOneDrug(@Param('id') id: string) {
-    return this.companyService.findOneDrugs(+id);
+  async findOneDrugs(@Param('id') id: string, @Request() req) {
+    if(await this.isUserForThisCompany(req, id)) {
+      return this.companyService.findOneDrugs(+id);
+    } else {
+      throw new UnauthorizedException("This is not your company!")
+    }
+    
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+
   @Get('request126/:id')
-  findOneRequest126(@Param('id') id: string) {
-    return this.companyService.findOneRequest126s(+id);
+  async findOneRequest126(@Param('id') id: string, @Request() req) {
+    if(await this.isUserForThisCompany(req, id)) {
+      return this.companyService.findOneRequest126s(+id);
+    } else {
+      throw new UnauthorizedException("This is not your company!")
+    }
+    
   }
+
 
   @Get(':id')
   async findOne(@Param('id') id: string, @Request() req) {
-    const userId = this.validateUserId(req);
-    const user = await this.personService.findOne(userId);
-    const userCompanyId = user.companies?.[0]?.company?.id
-    if(user.role === ROLES.SYSTEM || userCompanyId.toString() === id) {
+    if(await this.isUserForThisCompany(req, id)) {
       return this.companyService.findOne(+id);
     } else {
       throw new UnauthorizedException("This is not your company!")
