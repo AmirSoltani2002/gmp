@@ -41,7 +41,7 @@ export class CompanyController {
     return company
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP])
   @Get()
   findAll(@Query() query: FindAllCompanyDto) {
     return this.companyService.findAll(query);
