@@ -133,8 +133,13 @@ export class CompanyService {
   }
   findOneRequest126s(id: string) {
     if(id === 'all') {
-      return this.db.company.findMany({
-        include: {request126s: true}
+      return this.db.request126.findMany({
+        include: {
+          company: true,
+          line: true,
+          drug: true,
+          history: true,
+        },
       })
     } else {
       const idNumber = Number(id)
