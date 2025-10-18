@@ -159,6 +159,7 @@ export class CompanyService {
 
   findOneByUser(id: number) {
     return this.db.person.findFirstOrThrow({
+      where: {id},
       include: {
         companies: {
           // Prefer the current company (no endedAt). If multiple, get the latest by createdAt.
