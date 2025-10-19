@@ -34,6 +34,7 @@ export class DocumentService {
     return this.db.document.create({
       data: {
         title: dto.title,
+        description: dto.description,
         fileName: file.originalname,
         fileKey,
         fileSize: file.size,
@@ -52,6 +53,7 @@ export class DocumentService {
       where.OR = [
         { title: { contains: q, mode: 'insensitive' } },
         { fileName: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } },
       ];
     }
 

@@ -1,4 +1,4 @@
-import { IsString, MinLength } from 'class-validator';
+import { IsString, MinLength, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UploadDocumentDto {
@@ -9,4 +9,13 @@ export class UploadDocumentDto {
   @IsString()
   @MinLength(1)
   title: string;
+
+  @ApiProperty({
+    description: 'Document description',
+    example: 'Detailed safety protocols for manufacturing line operations',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  description?: string;
 }
