@@ -21,6 +21,7 @@ import { CompanyDrugModule } from './company-drug/company-drug.module';
 import { Request126Module } from './request126/request126.module';
 import { Request126HistoryModule } from './request126-history/request126-history.module';
 import { DocumentModule } from './document/document.module';
+import { DocumentAssociationModule } from './document-association/document-association.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { DocumentModule } from './document/document.module';
     Request126Module,
     Request126HistoryModule,
     DocumentModule,
+    DocumentAssociationModule,
   ],
   controllers: [AppController],
   providers: [
