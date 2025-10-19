@@ -17,14 +17,19 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/jest-e2e.json"
+    "test:e2e": "jest --config ./test/jest-e2e.json",
+    "create-superuser": "tsx scripts/create-superuser.ts",
+    "seed-mock-data": "tsx scripts/seed-mock-data.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.913.0",
+    "@aws-sdk/s3-request-presigner": "^3.913.0",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.37.0",
     "@liara/cli": "^9.3.6",
     "@nestjs/cli": "^11.0.10",
     "@nestjs/common": "^11.1.6",
+    "@nestjs/config": "^4.0.2",
     "@nestjs/core": "^11.1.6",
     "@nestjs/jwt": "^11.0.1",
     "@nestjs/mapped-types": "*",
@@ -32,11 +37,11 @@
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/testing": "^11.1.6",
-    "@nestjsx/crud": "5.0.0-alpha.3",
     "@nestjsx/crud-typeorm": "5.0.0-alpha.3",
     "@prisma/client": "^6.17.1",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
+    "@types/multer": "^2.0.0",
     "@types/node": "^24.7.2",
     "@types/supertest": "^6.0.3",
     "bcrypt": "^6.0.0",
@@ -48,6 +53,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.4.0",
     "jest": "^30.2.0",
+    "multer": "^2.0.2",
     "npm-check-updates": "^19.0.0",
     "prettier": "^3.6.2",
     "prisma": "^6.17.1",
@@ -59,6 +65,7 @@
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "typeorm": "^0.3.27",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.0"
   },
@@ -81,5 +88,8 @@
     "moduleNameMapper": {
       "src/(.*)": "<rootDir>/src/$1"
     }
+  },
+  "devDependencies": {
+    "tsx": "^4.20.6"
   }
 }

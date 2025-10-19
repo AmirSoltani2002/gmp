@@ -6,53 +6,41 @@ import { FindAllRequest126Dto } from './dto/find-all-request126.dto';
 
 @Injectable()
 export class Request126Service {
-  constructor(private prisma: DatabaseService) {}
+  constructor(private readonly db: DatabaseService) {}
 
-  async findMany(query?: any) {
-    return this.prisma.request126.findMany({
-      ...query,
-      include: { company: true, line: true, drug: true },
-    });
-  }
+  async create(createRequest126Dto: CreateRequest126Dto) {
+    const data = {
+      ...createRequest126Dto,
+      closedAt: createRequest126Dto.closedAt ? new Date(createRequest126Dto.closedAt) : null,
+    };
 
-  async findOne(id: number) {
-    return this.prisma.request126.findUnique({
-      where: { id },
-      include: { company: true, line: true, drug: true },
-    });
-  }
-
-  async create(data: CreateRequest126Dto) {
-    return this.prisma.request126.create({
+    return this.db.request126.create({
       data,
-      include: { company: true, line: true, drug: true },
-    });
-  }
-
-  async update(id: number, data: UpdateRequest126Dto) {
-    return this.prisma.request126.update({
-      where: { id },
-      data,
-      include: { company: true, line: true, drug: true },
-    });
-  }
-
-  async delete(id: number) {
-    return this.prisma.request126.delete({ 
-      where: { id },
-      include: { company: true, line: true, drug: true },
+      include: { 
+        company: true, 
+        line: true, 
+        drug: true 
+      },
     });
   }
 
   async findAll(query: FindAllRequest126Dto) {
-    const { page = 1, pageSize = 20, limit, type, companyId, q, search } = query;
-    
+    const {
+      page = 1,
+      pageSize = 20,
+      limit,
+      type,
+      companyId,
+      q,
+      search,
+    } = query;
+
     // Use pageSize if provided, otherwise fallback to limit, then default
     const actualLimit = pageSize || limit || 20;
     const skip = (page - 1) * actualLimit;
 
     const where: any = {};
-    
+
     // Build search conditions similar to company service (use q or search)
     const searchTerm = q || search;
     if (searchTerm) {
@@ -60,41 +48,53 @@ export class Request126Service {
         { type: { contains: searchTerm, mode: 'insensitive' } },
         { company: { nameFa: { contains: searchTerm, mode: 'insensitive' } } },
         { company: { nameEn: { contains: searchTerm, mode: 'insensitive' } } },
-        { drug: { name: { contains: searchTerm, mode: 'insensitive' } } },
-        { line: { name: { contains: searchTerm, mode: 'insensitive' } } }
+        { drug: { drugIndexName: { contains: searchTerm, mode: 'insensitive' } } },
+        { drug: { genericName: { contains: searchTerm, mode: 'insensitive' } } },
+        { line: { nameEn: { contains: searchTerm, mode: 'insensitive' } } },
+        { line: { nameFa: { contains: searchTerm, mode: 'insensitive' } } },
       ];
     }
-    
+
     // Specific filters (will override OR search if both provided)
-    if (type && !searchTerm) where.type = { contains: type, mode: 'insensitive' };
-    if (companyId) where.companyId = companyId;
-    
-    // Default filter for non-closed requests
+    if (type && !searchTerm) {
+      where.type = { contains: type, mode: 'insensitive' };
+    }
+    if (companyId) {
+      where.companyId = companyId;
+    }
+
+    // Default filter for non-closed requests (matching original @Crud config)
     where.closedAt = null;
 
     // Conditional includes based on page size (like company service)
-    const include = actualLimit < 50 
-      ? {
-          company: true,
-          line: true,
-          drug: true,
-          history: true
-        }
-      : {
-          company: true,
-          line: true,
-          drug: true
-        };
+    const include =
+      actualLimit < 50
+        ? {
+            company: true,
+            line: true,
+            drug: true,
+            history: {
+              include: {
+                actor: true,
+                toAssignee: true,
+              },
+            },
+          }
+        : {
+            company: true,
+            line: true,
+            drug: true,
+          };
 
-    const [items, totalItems] = await this.prisma.$transaction([
-      this.prisma.request126.findMany({
+    const [items, totalItems] = await this.db.$transaction([
+      this.db.request126.findMany({
         where,
         include,
         skip,
         take: +actualLimit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: 'desc' }, // Matching original sort config
       }),
-      this.prisma.request126.count({ where }),
+      this.db.request126.count({ where }),
     ]);
 
     const totalPages = Math.ceil(totalItems / actualLimit);
@@ -104,12 +104,53 @@ export class Request126Service {
       totalItems,
       totalPages,
       currentPage: +page,
-      pageSize: +actualLimit
+      pageSize: +actualLimit,
     };
   }
 
-  // Alias methods for backward compatibility
+  async findOne(id: number) {
+    return this.db.request126.findUniqueOrThrow({
+      where: { id },
+      include: { 
+        company: true, 
+        line: true, 
+        drug: true,
+        history: {
+          include: {
+            actor: true,
+            toAssignee: true,
+          },
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+    });
+  }
+
+  async update(id: number, updateRequest126Dto: UpdateRequest126Dto) {
+    const data = {
+      ...updateRequest126Dto,
+      closedAt: updateRequest126Dto.closedAt ? new Date(updateRequest126Dto.closedAt) : undefined,
+    };
+
+    return this.db.request126.update({
+      where: { id },
+      data,
+      include: { 
+        company: true, 
+        line: true, 
+        drug: true 
+      },
+    });
+  }
+
   async remove(id: number) {
-    return this.delete(id);
+    return this.db.request126.delete({
+      where: { id },
+      include: { 
+        company: true, 
+        line: true, 
+        drug: true 
+      },
+    });
   }
 }

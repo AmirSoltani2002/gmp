@@ -27,7 +27,7 @@ This system enables **different permissions for different HTTP methods** (GET, P
 - **Type safety**: Full TypeScript support with IntelliSense
 - **Granular control**: Fine-grained access control per operation
 - **Standard NestJS**: Uses standard NestJS patterns and decorators
-- **CRUD integration**: Works seamlessly with `@nestjsx/crud`
+- **Pure Prisma**: Direct Prisma integration without ORM abstraction layers
 
 ### 🏗️ Permission Hierarchy
 
@@ -79,27 +79,50 @@ export class ExampleController {
 }
 ```
 
-### 2. CRUD Controller Setup
+### 2. Standard NestJS Controller Setup
 
 ```typescript
-@Crud({
-  model: { type: Entity },
-  dto: { create: CreateDto, update: UpdateDto },
-  query: {
-    limit: 20,
-    alwaysPaginate: true,
-    join: { relation: { eager: true } }
-  }
-})
 @MethodPermissions({
   'GET': [ROLES.SYSTEM, ROLES.IFDAUSER],
   'POST': [ROLES.SYSTEM],
   'PATCH': [ROLES.SYSTEM],
   'DELETE': [ROLES.SYSTEM]
 })
+@ApiTags('example')
+@ApiBearerAuth('bearer-key')
 @Controller('example')
 export class ExampleController {
-  constructor(public service: ExampleService) {}
+  constructor(private readonly exampleService: ExampleService) {}
+
+  @Get()
+  @ApiOperation({ summary: 'List all examples' })
+  findAll(@Query() query: FindAllExampleDto) {
+    return this.exampleService.findAll(query);
+  }
+
+  @Post()
+  @ApiOperation({ summary: 'Create new example' })
+  create(@Body() dto: CreateExampleDto) {
+    return this.exampleService.create(dto);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get example by ID' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.exampleService.findOne(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update example' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateExampleDto) {
+    return this.exampleService.update(id, dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete example' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.exampleService.remove(id);
+  }
 }
 ```
 
@@ -257,25 +280,9 @@ export class CompanyController {
 }
 ```
 
-### 2. CRUD with Custom Overrides
+### 2. Complete Controller with Custom Endpoints
 
 ```typescript
-@Crud({
-  model: { type: Request126 },
-  dto: { create: CreateRequest126Dto, update: UpdateRequest126Dto },
-  query: {
-    limit: 20,
-    maxLimit: 100,
-    alwaysPaginate: true,
-    filter: { closedAt: { $isnull: true } },
-    join: {
-      company: { eager: true },
-      line: { eager: true },
-      drug: { eager: true }
-    },
-    sort: [{ field: 'createdAt', order: 'DESC' }]
-  }
-})
 @MethodPermissions({
   'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
   'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
@@ -286,14 +293,44 @@ export class CompanyController {
 @ApiBearerAuth('bearer-key')
 @Controller('request126')
 export class Request126Controller {
-  constructor(public service: Request126Service) {}
+  constructor(private readonly request126Service: Request126Service) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Create a new request126' })
+  create(@Body() createRequest126Dto: CreateRequest126Dto) {
+    return this.request126Service.create(createRequest126Dto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all request126s with filtering and pagination' })
+  findAll(@Query() query: FindAllRequest126Dto) {
+    return this.request126Service.findAll(query);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a single request126 by ID' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.request126Service.findOne(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update a request126' })
+  update(@Param('id', ParseIntPipe) id: number, @Body() updateRequest126Dto: UpdateRequest126Dto) {
+    return this.request126Service.update(id, updateRequest126Dto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete a request126' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.request126Service.remove(id);
+  }
 
   // Custom endpoint with specific permissions
   @Get('closed')
   @Roles([ROLES.SYSTEM]) // Override: Only SYSTEM can view closed requests
   @ApiOperation({ summary: 'Get closed requests (admin only)' })
   getClosedRequests() {
-    return this.service.findClosedRequests();
+    return this.request126Service.findClosedRequests();
   }
 }
 ```
@@ -364,45 +401,68 @@ export class MixedController {
 })
 ```
 
-### 2. Service Structure for CRUD
+### 2. Prisma-Based Service Structure
 
 ```typescript
 @Injectable()
 export class ExampleService {
-  constructor(private prisma: DatabaseService) {}
-  
-  // @nestjsx/crud compatible methods
-  async findMany(query?: any) {
-    return this.prisma.example.findMany({
-      ...query,
+  constructor(private readonly db: DatabaseService) {}
+
+  async create(createExampleDto: CreateExampleDto) {
+    return this.db.example.create({
+      data: createExampleDto,
       include: { company: true }
     });
+  }
+
+  async findAll(query: FindAllExampleDto) {
+    const { page = 1, pageSize = 20, q } = query;
+    const skip = (page - 1) * pageSize;
+
+    const where = q ? {
+      OR: [
+        { name: { contains: q, mode: 'insensitive' } },
+        { description: { contains: q, mode: 'insensitive' } }
+      ]
+    } : {};
+
+    const [data, total] = await Promise.all([
+      this.db.example.findMany({
+        where,
+        skip,
+        take: pageSize,
+        include: { company: true },
+        orderBy: { createdAt: 'desc' }
+      }),
+      this.db.example.count({ where })
+    ]);
+
+    return {
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize)
+    };
   }
 
   async findOne(id: number) {
-    return this.prisma.example.findUnique({
+    return this.db.example.findUniqueOrThrow({
       where: { id },
       include: { company: true }
     });
   }
 
-  async create(data: CreateExampleDto) {
-    return this.prisma.example.create({
-      data,
-      include: { company: true }
-    });
-  }
-
-  async update(id: number, data: UpdateExampleDto) {
-    return this.prisma.example.update({
+  async update(id: number, updateExampleDto: UpdateExampleDto) {
+    return this.db.example.update({
       where: { id },
-      data,
+      data: updateExampleDto,
       include: { company: true }
     });
   }
 
   async remove(id: number) {
-    return this.prisma.example.delete({ 
+    return this.db.example.delete({ 
       where: { id },
       include: { company: true }
     });
@@ -555,42 +615,37 @@ Access documentation at: `http://localhost:8000/api-docs`
 })
 ```
 
-#### ❌ Invalid CRUD Configuration
+#### ❌ Incorrect Prisma Query Syntax
 
-**Problem**: Incorrect @nestjsx/crud filter syntax
+**Problem**: Invalid Prisma filter syntax
 
 ```typescript
 // Wrong:
-@Crud({
-  query: {
-    filter: { closedAt: { $isNull: true } }, // Invalid syntax
-  }
-})
+const where = {
+  closedAt: { $isnull: true } // This is @nestjsx/crud syntax
+};
 
 // Correct:
-@Crud({
-  query: {
-    filter: { closedAt: { $isnull: true } }, // Correct syntax
-  }
-})
+const where = {
+  closedAt: null // Prisma syntax for null check
+};
 ```
 
-#### ❌ Missing Entity Relations
+#### ❌ Missing Database Service Import
 
-**Problem**: Entity missing relation properties
+**Problem**: Service not injecting DatabaseService properly
 
 ```typescript
 // Wrong:
-export class Example {
-  id: number;
-  companyId: number;
+@Injectable()
+export class ExampleService {
+  constructor(private prisma: PrismaService) {} // Wrong service name
 }
 
 // Correct:
-export class Example {
-  id: number;
-  companyId: number;
-  company?: Company; // Add relation property
+@Injectable()
+export class ExampleService {
+  constructor(private readonly db: DatabaseService) {} // Correct service name
 }
 ```
 
@@ -1158,26 +1213,29 @@ The HTTP Method Permissions system with the enhanced Request126 implementation p
 
 ### 🚀 **Recent Enhancements (October 2025)**
 
-✅ **Enhanced Request126 Service**:
-- Multi-field search with OR conditions
+✅ **Migration from @nestjsx/crud to Pure Prisma**:
+- Removed dependency on outdated @nestjsx/crud package
+- Implemented direct Prisma queries for better performance and control
+- Maintained API compatibility while improving underlying architecture
+
+✅ **Enhanced Request126 Implementation**:
+- Complete rewrite using standard NestJS controllers
+- Multi-field search with Prisma OR conditions
 - Performance-optimized conditional includes
-- Transaction-based data retrieval
+- Transaction-based data retrieval for consistency
 - Support for both `pageSize`/`limit` and `q`/`search` parameters
-- Utility methods for request lifecycle management
 
-✅ **Improved DTO Validation**:
-- Comprehensive API documentation with examples
-- Transform decorators for proper type conversion
-- Backward compatibility with legacy parameters
+✅ **Mock Data Generation System**:
+- Comprehensive mock data script for all database tables
+- Realistic Persian/Farsi pharmaceutical data
+- Proper relationship handling and foreign key constraints
+- Easy-to-use npm script for development setup
 
-✅ **Updated NestJS CLI**:
-- Resolved deprecation warnings (DEP0190)
-- Clean application startup with no compilation errors
-
-✅ **Enhanced Documentation**:
-- Complete implementation examples
-- Performance optimization guidelines
-- Advanced usage patterns and best practices
+✅ **Improved Architecture**:
+- Simplified service layer with direct Prisma integration
+- Better error handling with findUniqueOrThrow
+- Enhanced type safety throughout the application
+- Cleaner code organization without ORM abstraction layers
 
 This approach ensures clear, auditable permission boundaries while maintaining NestJS best practices and providing excellent developer experience.
 

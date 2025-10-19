@@ -12,24 +12,6 @@ export class SwaggerConfig {
   static createDocumentConfig() {
     return new DocumentBuilder()
       .setTitle('GMP Backend API')
-      .setDescription(`
-        Good Manufacturing Practice (GMP) Backend Service API Documentation
-        
-        Features:
-        - JWT Authentication - Secure token-based authentication
-        - HTTP Method Permissions - Granular access control per operation
-        - CRUD Operations - Complete data management capabilities
-        - Advanced Filtering - Powerful query and filter options
-        - Pagination - Efficient data pagination
-        - Relations - Automatic eager loading of related data
-        
-        Authentication:
-        Use the Authorize button below to authenticate with your JWT token.
-        Format: Bearer <your-jwt-token>
-        
-        Base URL: /api
-        All endpoints are prefixed with /api/
-      `)
       .setVersion('1.0.0')
       .addServer('/api', 'API Server')
       .addBearerAuth(

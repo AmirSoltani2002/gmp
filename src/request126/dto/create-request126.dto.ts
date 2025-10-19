@@ -26,7 +26,7 @@ export class CreateRequest126Dto {
 
   @ApiProperty({
     description: 'ID of the production line',
-    example: 2,
+    example: 1,
     minimum: 1,
     type: Number,
   })
@@ -37,7 +37,7 @@ export class CreateRequest126Dto {
 
   @ApiProperty({
     description: 'ID of the drug being processed',
-    example: 3,
+    example: 1,
     minimum: 1,
     type: Number,
   })
@@ -48,7 +48,7 @@ export class CreateRequest126Dto {
 
   @ApiProperty({
     description: 'Declared Occupational Exposure Band (OEB) value',
-    example: 4,
+    example: 1,
     minimum: 0,
     type: Number,
   })
