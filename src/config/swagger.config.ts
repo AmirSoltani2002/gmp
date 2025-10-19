@@ -26,8 +26,12 @@ export class SwaggerConfig {
         Authentication:
         Use the Authorize button below to authenticate with your JWT token.
         Format: Bearer <your-jwt-token>
+        
+        Base URL: /api
+        All endpoints are prefixed with /api/
       `)
       .setVersion('1.0.0')
+      .addServer('/api', 'API Server')
       .addBearerAuth(
         {
           type: 'http',
