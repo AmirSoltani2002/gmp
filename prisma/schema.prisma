@@ -37,6 +37,7 @@ model company {
   supplierDrugs   companyDrug[] @relation("SupplierCompany")
   producerDrugs   companyDrug[] @relation("ProducerCompany")
   request126s     request126[]
+  documents       companyDocument[]       // attached documents
 
   createdAt    DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
@@ -105,6 +106,7 @@ model site {
   GLN String?
   province  String?
   name  String?
+  documents siteDocument[]              // attached documents
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -146,6 +148,7 @@ model line {
   lineDosage lineDosage[]
   machines   machine[]
   request126s     request126[]
+  documents       lineDocument[]          // attached documents
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -184,6 +187,7 @@ model machine {
 model document {
   id            Int       @id @default(autoincrement())
   title         String
+  description   String?   // Description of the document
   fileName      String    // Original file name
   fileKey       String    @unique // S3 object key/path
   fileSize      Int       // File size in bytes
@@ -192,9 +196,59 @@ model document {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  // Relations to bridge tables
+  siteDocuments     siteDocument[]
+  lineDocuments     lineDocument[]
+  companyDocuments  companyDocument[]
+  request126Documents request126Document[]
+
   @@index([fileKey])
   @@index([uploadedBy])
   @@index([mimeType])
+}
+
+model siteDocument {
+  id          Int       @id @default(autoincrement())
+  site        site      @relation(fields: [siteId], references: [id])
+  siteId      Int
+  document    document  @relation(fields: [documentId], references: [id])
+  documentId  Int
+
+  @@index([siteId])
+  @@index([documentId])
+}
+
+model lineDocument {
+  id          Int       @id @default(autoincrement())
+  line        line      @relation(fields: [lineId], references: [id])
+  lineId      Int
+  document    document  @relation(fields: [documentId], references: [id])
+  documentId  Int
+
+  @@index([lineId])
+  @@index([documentId])
+}
+
+model companyDocument {
+  id          Int       @id @default(autoincrement())
+  company     company   @relation(fields: [companyId], references: [id])
+  companyId   Int
+  document    document  @relation(fields: [documentId], references: [id])
+  documentId  Int
+
+  @@index([companyId])
+  @@index([documentId])
+}
+
+model request126Document {
+  id          Int        @id @default(autoincrement())
+  request     request126 @relation(fields: [requestId], references: [id])
+  requestId   Int
+  document    document   @relation(fields: [documentId], references: [id])
+  documentId  Int
+
+  @@index([requestId])
+  @@index([documentId])
 }
 
 model drug {
@@ -248,6 +302,7 @@ model request126 {
   drugOEL_declared Float
 
   history       request126History[]
+  documents     request126Document[]      // attached documents
 
   closedAt      DateTime?
   createdAt     DateTime  @default(now())
