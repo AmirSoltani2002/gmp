@@ -20,6 +20,7 @@ import { DrugModule } from './drug/drug.module';
 import { CompanyDrugModule } from './company-drug/company-drug.module';
 import { Request126Module } from './request126/request126.module';
 import { Request126HistoryModule } from './request126-history/request126-history.module';
+import { S3Module } from './s3/s3.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { Request126HistoryModule } from './request126-history/request126-history
     CompanyDrugModule,
     Request126Module,
     Request126HistoryModule,
+    S3Module,
   ],
   controllers: [AppController],
   providers: [
