@@ -45,37 +45,66 @@ export class Request126Service {
   }
 
   async findAll(query: FindAllRequest126Dto) {
-    const { page = 1, limit = 20, type, companyId, search } = query;
-    const skip = (page - 1) * limit;
+    const { page = 1, pageSize = 20, limit, type, companyId, q, search } = query;
+    
+    // Use pageSize if provided, otherwise fallback to limit, then default
+    const actualLimit = pageSize || limit || 20;
+    const skip = (page - 1) * actualLimit;
 
     const where: any = {};
     
-    if (type) where.type = { contains: type, mode: 'insensitive' };
-    if (companyId) where.companyId = companyId;
-    if (search) where.type = { contains: search, mode: 'insensitive' };
+    // Build search conditions similar to company service (use q or search)
+    const searchTerm = q || search;
+    if (searchTerm) {
+      where.OR = [
+        { type: { contains: searchTerm, mode: 'insensitive' } },
+        { company: { nameFa: { contains: searchTerm, mode: 'insensitive' } } },
+        { company: { nameEn: { contains: searchTerm, mode: 'insensitive' } } },
+        { drug: { name: { contains: searchTerm, mode: 'insensitive' } } },
+        { line: { name: { contains: searchTerm, mode: 'insensitive' } } }
+      ];
+    }
     
+    // Specific filters (will override OR search if both provided)
+    if (type && !searchTerm) where.type = { contains: type, mode: 'insensitive' };
+    if (companyId) where.companyId = companyId;
+    
+    // Default filter for non-closed requests
     where.closedAt = null;
 
-    const [items, total] = await Promise.all([
+    // Conditional includes based on page size (like company service)
+    const include = actualLimit < 50 
+      ? {
+          company: true,
+          line: true,
+          drug: true,
+          history: true
+        }
+      : {
+          company: true,
+          line: true,
+          drug: true
+        };
+
+    const [items, totalItems] = await this.prisma.$transaction([
       this.prisma.request126.findMany({
         where,
+        include,
         skip,
-        take: limit,
-        include: { company: true, line: true, drug: true },
+        take: +actualLimit,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.request126.count({ where }),
     ]);
 
+    const totalPages = Math.ceil(totalItems / actualLimit);
+
     return {
-      results: items,
-      count: total,
-      next:
-        skip + limit < total
-          ? `/api/request126?page=${page + 1}&limit=${limit}`
-          : null,
-      previous:
-        page > 1 ? `/api/request126?page=${page - 1}&limit=${limit}` : null,
+      data: items,
+      totalItems,
+      totalPages,
+      currentPage: +page,
+      pageSize: +actualLimit
     };
   }
 
