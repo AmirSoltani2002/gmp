@@ -13,13 +13,13 @@ describe('Request126HistoryController', () => {
         {
           provide: Request126HistoryService,
           useValue: {
+            create: jest.fn(),
             findAll: jest.fn(),
             findOne: jest.fn(),
-            create: jest.fn(),
             update: jest.fn(),
             remove: jest.fn(),
-            findMany: jest.fn(),
-            delete: jest.fn(),
+            findByRequest: jest.fn(),
+            findByActor: jest.fn(),
           },
         },
       ],

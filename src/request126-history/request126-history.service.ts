@@ -6,45 +6,10 @@ import { FindAllRequest126HistoryDto } from './dto/find-all-request126-history.d
 
 @Injectable()
 export class Request126HistoryService {
-  constructor(private prisma: DatabaseService) {}
-
-  // 🔸 @nestjsx/crud compatible methods
-  async findMany(query?: any) {
-    return this.prisma.request126History.findMany({
-      ...query,
-      include: { 
-        request: {
-          include: {
-            company: true,
-            line: true,
-            drug: true
-          }
-        },
-        actor: true,
-        toAssignee: true
-      },
-    });
-  }
-
-  async findOne(id: number) {
-    return this.prisma.request126History.findUnique({
-      where: { id },
-      include: { 
-        request: {
-          include: {
-            company: true,
-            line: true,
-            drug: true
-          }
-        },
-        actor: true,
-        toAssignee: true
-      },
-    });
-  }
+  constructor(private readonly db: DatabaseService) {}
 
   async create(data: CreateRequest126HistoryDto) {
-    return this.prisma.request126History.create({
+    return this.db.request126History.create({
       data: {
         ...data,
         endedAt: data.endedAt ? new Date(data.endedAt) : null,
@@ -63,45 +28,6 @@ export class Request126HistoryService {
     });
   }
 
-  async update(id: number, data: UpdateRequest126HistoryDto) {
-    return this.prisma.request126History.update({
-      where: { id },
-      data: {
-        ...data,
-        endedAt: data.endedAt ? new Date(data.endedAt) : undefined,
-      },
-      include: { 
-        request: {
-          include: {
-            company: true,
-            line: true,
-            drug: true
-          }
-        },
-        actor: true,
-        toAssignee: true
-      },
-    });
-  }
-
-  async delete(id: number) {
-    return this.prisma.request126History.delete({ 
-      where: { id },
-      include: { 
-        request: {
-          include: {
-            company: true,
-            line: true,
-            drug: true
-          }
-        },
-        actor: true,
-        toAssignee: true
-      },
-    });
-  }
-
-  // 🔸 Enhanced findAll with advanced search capabilities
   async findAll(query: FindAllRequest126HistoryDto) {
     const { 
       page = 1, 
@@ -168,15 +94,15 @@ export class Request126HistoryService {
         };
 
     // Use transaction for consistency
-    const [items, totalItems] = await this.prisma.$transaction([
-      this.prisma.request126History.findMany({
+    const [items, totalItems] = await this.db.$transaction([
+      this.db.request126History.findMany({
         where,
         include,
         skip,
         take: +actualLimit,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.request126History.count({ where }),
+      this.db.request126History.count({ where }),
     ]);
 
     const totalPages = Math.ceil(totalItems / actualLimit);
@@ -190,8 +116,95 @@ export class Request126HistoryService {
     };
   }
 
-  // Alias for backward compatibility
+  async findOne(id: number) {
+    return this.db.request126History.findUniqueOrThrow({
+      where: { id },
+      include: { 
+        request: {
+          include: {
+            company: true,
+            line: true,
+            drug: true
+          }
+        },
+        actor: true,
+        toAssignee: true
+      },
+    });
+  }
+
+  async update(id: number, data: UpdateRequest126HistoryDto) {
+    return this.db.request126History.update({
+      where: { id },
+      data: {
+        ...data,
+        endedAt: data.endedAt ? new Date(data.endedAt) : undefined,
+      },
+      include: { 
+        request: {
+          include: {
+            company: true,
+            line: true,
+            drug: true
+          }
+        },
+        actor: true,
+        toAssignee: true
+      },
+    });
+  }
+
   async remove(id: number) {
-    return this.delete(id);
+    return this.db.request126History.delete({ 
+      where: { id },
+      include: { 
+        request: {
+          include: {
+            company: true,
+            line: true,
+            drug: true
+          }
+        },
+        actor: true,
+        toAssignee: true
+      },
+    });
+  }
+
+  // 🔸 Utility methods for custom endpoints
+  async findByRequest(requestId: number) {
+    return this.db.request126History.findMany({
+      where: { requestId },
+      include: { 
+        request: {
+          include: {
+            company: true,
+            line: true,
+            drug: true
+          }
+        },
+        actor: true,
+        toAssignee: true
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findByActor(actorId: number) {
+    return this.db.request126History.findMany({
+      where: { actorId },
+      include: { 
+        request: {
+          include: {
+            company: true,
+            line: true,
+            drug: true
+          }
+        },
+        actor: true,
+        toAssignee: true
+      },
+      orderBy: { createdAt: 'desc' },
+    });
   }
 }
