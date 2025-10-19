@@ -1,40 +1,128 @@
 # HTTP Method Permissions Implementation Guide
 
+> **A comprehensive guide to implementing fine-grained HTTP method-based permissions in NestJS applications**
+
+## 📋 Table of Contents
+
+- [Overview](#overview)
+- [Quick Start](#quick-start)
+- [Architecture](#architecture)
+- [Implementation](#implementation)
+- [Usage Examples](#usage-examples)
+- [Best Practices](#best-practices)
+- [API Documentation](#api-documentation)
+- [Troubleshooting](#troubleshooting)
+- [Migration Guide](#migration-guide)
+
+---
+
 ## Overview
 
-This document describes the HTTP method-based permissions system implemented in our NestJS application. This approach allows you to define different permissions for different HTTP methods (GET, POST, PATCH, DELETE) on a per-controller basis, providing fine-grained access control similar to method-specific permission patterns found in modern REST frameworks.
+This system enables **different permissions for different HTTP methods** (GET, POST, PATCH, DELETE) on a per-controller basis, providing fine-grained access control for REST APIs in NestJS applications.
 
-## Table of Contents
+### 🎯 Key Benefits
 
-1. [Architecture Overview](#architecture-overview)
-2. [Core Components](#core-components)
-3. [Implementation Details](#implementation-details)
-4. [Usage Examples](#usage-examples)
-5. [Best Practices](#best-practices)
-6. [Migration Guide](#migration-guide)
-7. [Troubleshooting](#troubleshooting)
-
-## Architecture Overview
-
-The system extends our existing role-based authentication with method-specific permissions:
-
-```
-Request → AuthGuard → EnhancedRolesGuard → Controller
-                           ↓
-                    MethodPermissions or Roles
-```
-
-### Key Benefits
-
-- **HTTP method flexibility**: Different permissions per HTTP method
+- **Method-specific permissions**: Different roles per HTTP method
 - **Backward compatibility**: Existing `@Roles` decorators continue working
-- **Type safety**: Full TypeScript support
+- **Type safety**: Full TypeScript support with IntelliSense
 - **Granular control**: Fine-grained access control per operation
+- **Standard NestJS**: Uses standard NestJS patterns and decorators
+- **CRUD integration**: Works seamlessly with `@nestjsx/crud`
 
-## Core Components
+### 🏗️ Permission Hierarchy
 
-### 1. MethodPermissions Decorator
+```typescript
+@MethodPermissions({
+  'GET':    [SYSTEM, QRP, IFDAUSER, IFDAMANAGER, COMPANYOTHER], // Most permissive
+  'POST':   [SYSTEM, IFDAMANAGER, QRP],                         // Moderate
+  'PATCH':  [SYSTEM, IFDAMANAGER, QRP],                         // Moderate  
+  'DELETE': [SYSTEM, IFDAMANAGER]                               // Most restrictive
+})
+```
 
+---
+
+## Quick Start
+
+### 1. Basic Controller Setup
+
+```typescript
+import { Controller } from '@nestjs/common';
+import { MethodPermissions } from '../auth/roles.decorator';
+import { ROLES } from '../common/interface';
+
+@MethodPermissions({
+  'GET': [ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER],
+  'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER],
+  'PATCH': [ROLES.SYSTEM, ROLES.IFDAMANAGER],
+  'DELETE': [ROLES.SYSTEM]
+})
+@Controller('example')
+export class ExampleController {
+  @Get()
+  findAll() {
+    // Accessible by: SYSTEM, IFDAUSER, IFDAMANAGER
+    return this.exampleService.findAll();
+  }
+
+  @Post()
+  create(@Body() dto: CreateDto) {
+    // Accessible by: SYSTEM, IFDAMANAGER
+    return this.exampleService.create(dto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    // Accessible by: SYSTEM only
+    return this.exampleService.remove(+id);
+  }
+}
+```
+
+### 2. CRUD Controller Setup
+
+```typescript
+@Crud({
+  model: { type: Entity },
+  dto: { create: CreateDto, update: UpdateDto },
+  query: {
+    limit: 20,
+    alwaysPaginate: true,
+    join: { relation: { eager: true } }
+  }
+})
+@MethodPermissions({
+  'GET': [ROLES.SYSTEM, ROLES.IFDAUSER],
+  'POST': [ROLES.SYSTEM],
+  'PATCH': [ROLES.SYSTEM],
+  'DELETE': [ROLES.SYSTEM]
+})
+@Controller('example')
+export class ExampleController {
+  constructor(public service: ExampleService) {}
+}
+```
+
+---
+
+## Architecture
+
+### System Flow
+
+```mermaid
+graph LR
+    A[Request] --> B[AuthGuard]
+    B --> C[EnhancedRolesGuard]
+    C --> D{MethodPermissions?}
+    D -->|Yes| E[Check Method Role]
+    D -->|No| F[Fallback to @Roles]
+    E --> G[Controller]
+    F --> G
+```
+
+### Core Components
+
+#### 1. MethodPermissions Decorator
 **File**: `src/auth/roles.decorator.ts`
 
 ```typescript
@@ -43,8 +131,7 @@ export const MethodPermissions = Reflector.createDecorator<{
 }>();
 ```
 
-### 2. EnhancedRolesGuard
-
+#### 2. EnhancedRolesGuard
 **File**: `src/auth/auth.guard.ts`
 
 ```typescript
@@ -53,7 +140,6 @@ export class EnhancedRolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // Check for method-specific permissions first
     const methodPermissions = this.reflector.getAllAndOverride(MethodPermissions, [
       context.getHandler(),
       context.getClass(),
@@ -63,6 +149,7 @@ export class EnhancedRolesGuard implements CanActivate {
     const method = request.method;
     const { user } = request;
 
+    // Check method-specific permissions first
     if (methodPermissions && methodPermissions[method]) {
       return methodPermissions[method].includes(user?.role);
     }
@@ -79,9 +166,8 @@ export class EnhancedRolesGuard implements CanActivate {
 }
 ```
 
-### 3. Updated GlobalGuard
-
-The `GlobalGuard` now uses `EnhancedRolesGuard` instead of the basic `RolesGuard`:
+#### 3. Updated GlobalGuard
+**File**: `src/auth/auth.module.ts`
 
 ```typescript
 @Injectable()
@@ -89,576 +175,163 @@ export class GlobalGuard implements CanActivate {
   constructor(
     private readonly authGuard: AuthGuard,
     private readonly enhancedRolesGuard: EnhancedRolesGuard,
-    private readonly rolesGuardNot: RolesGuardNot,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const authResult = await this.authGuard.canActivate(context);
     if (!authResult) return false;
 
-    return this.enhancedRolesGuard.canActivate(context) && 
-           this.rolesGuardNot.canActivate(context);
+    return this.enhancedRolesGuard.canActivate(context);
   }
 }
 ```
 
-## Implementation Details
+---
+
+## Implementation
 
 ### Available Roles
-
 **File**: `src/common/interface.ts`
 
 ```typescript
 export enum ROLES {
-    SYSTEM = 'system',
-    QRP = 'QRP',
-    IFDAUSER = 'idfaUser',
-    CEO = 'ceo',
-    IFDAMANAGER = 'idfaManager',
-    COMPANYOTHER = 'companyOther'
+  SYSTEM = 'system',
+  QRP = 'QRP',
+  IFDAUSER = 'idfaUser',
+  IFDAMANAGER = 'idfaManager',
+  COMPANYOTHER = 'companyOther'
 }
 ```
 
 ### HTTP Method Mapping
 
-Different endpoints typically use these HTTP methods:
+| Operation | HTTP Method | Typical Permission Level | Use Case |
+|-----------|-------------|-------------------------|----------|
+| List/Read | GET | More permissive (read access) | Data viewing, reports |
+| Create | POST | Moderate restrictions | Data entry |
+| Update | PATCH | Moderate restrictions | Data modification |
+| Delete | DELETE | Highest restrictions | Data removal |
 
-| Operation | HTTP Method | Typical Permission Level |
-|-----------|-------------|-------------------------|
-| List/Read | GET | More permissive (read access) |
-| Create | POST | Moderate restrictions |
-| Update | PATCH | Moderate restrictions |
-| Full Replace | PUT | High restrictions |
-| Delete | DELETE | Highest restrictions |
+---
 
 ## Usage Examples
 
-### Example 1: Basic CRUD Controller
+### 1. Standard REST Controller
 
 ```typescript
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
-import { MethodPermissions } from '../auth/roles.decorator';
-import { ROLES } from '../common/interface';
-
 @MethodPermissions({
   'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
   'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
   'PATCH': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
   'DELETE': [ROLES.SYSTEM, ROLES.IFDAMANAGER]
 })
-@Controller('example')
-export class ExampleController {
-  constructor(private readonly exampleService: ExampleService) {}
+@ApiTags('companies')
+@ApiBearerAuth('bearer-key')
+@Controller('companies')
+export class CompanyController {
+  constructor(private readonly companyService: CompanyService) {}
 
   @Get()
+  @ApiOperation({ summary: 'List all companies' })
   findAll() {
-    // Accessible by: SYSTEM, QRP, IFDAUSER, IFDAMANAGER, COMPANYOTHER
-    return this.exampleService.findAll();
+    return this.companyService.findAll();
   }
 
   @Post()
-  create(@Body() createDto: CreateExampleDto) {
-    // Accessible by: SYSTEM, IFDAMANAGER, QRP
-    return this.exampleService.create(createDto);
+  @ApiOperation({ summary: 'Create new company' })
+  create(@Body() dto: CreateCompanyDto) {
+    return this.companyService.create(dto);
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateDto: UpdateExampleDto) {
-    // Accessible by: SYSTEM, IFDAMANAGER, QRP
-    return this.exampleService.update(+id, updateDto);
+  @ApiOperation({ summary: 'Update company' })
+  update(@Param('id') id: string, @Body() dto: UpdateCompanyDto) {
+    return this.companyService.update(+id, dto);
   }
 
   @Delete(':id')
+  @ApiOperation({ summary: 'Delete company' })
   remove(@Param('id') id: string) {
-    // Accessible by: SYSTEM, IFDAMANAGER
-    return this.exampleService.remove(+id);
+    return this.companyService.remove(+id);
   }
 }
 ```
 
-### Example 2: @nestjsx/crud Controller
-
-For CRUD controllers using `@nestjsx/crud`:
+### 2. CRUD with Custom Overrides
 
 ```typescript
-import { Controller } from '@nestjs/common';
-import { Crud, CrudController } from '@nestjsx/crud';
-import { MethodPermissions } from '../auth/roles.decorator';
-import { ROLES } from '../common/interface';
-import { ExampleService } from './example.service';
-import { Example } from './entities/example.entity';
-import { CreateExampleDto } from './dto/create-example.dto';
-import { UpdateExampleDto } from './dto/update-example.dto';
-
 @Crud({
-  model: { type: Example }, // ⚠️ Important: Point to entity, not service
-  dto: {
-    create: CreateExampleDto,
-    update: UpdateExampleDto,
-  },
+  model: { type: Request126 },
+  dto: { create: CreateRequest126Dto, update: UpdateRequest126Dto },
   query: {
     limit: 20,
     maxLimit: 100,
     alwaysPaginate: true,
+    filter: { closedAt: { $isnull: true } },
     join: {
-      relatedEntity: { eager: true },
+      company: { eager: true },
+      line: { eager: true },
+      drug: { eager: true }
     },
-  },
-  routes: {
-    only: ['getManyBase', 'getOneBase', 'createOneBase', 'updateOneBase', 'deleteOneBase'],
-  },
+    sort: [{ field: 'createdAt', order: 'DESC' }]
+  }
 })
 @MethodPermissions({
   'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
   'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
-  'PATCH': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP], // ⚠️ Use PATCH, not PUT
+  'PATCH': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
   'DELETE': [ROLES.SYSTEM, ROLES.IFDAMANAGER]
 })
-@Controller('example')
-export class ExampleController implements CrudController<ExampleService> {
-  constructor(public service: ExampleService) {}
+@ApiTags('request126')
+@ApiBearerAuth('bearer-key')
+@Controller('request126')
+export class Request126Controller {
+  constructor(public service: Request126Service) {}
+
+  // Custom endpoint with specific permissions
+  @Get('closed')
+  @Roles([ROLES.SYSTEM]) // Override: Only SYSTEM can view closed requests
+  @ApiOperation({ summary: 'Get closed requests (admin only)' })
+  getClosedRequests() {
+    return this.service.findClosedRequests();
+  }
 }
 ```
 
-### Example 3: Mixed Approach (Method Permissions + Individual Route Overrides)
+### 3. Mixed Approach
 
 ```typescript
-import { Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { MethodPermissions, Roles } from '../auth/roles.decorator';
-import { ROLES } from '../common/interface';
-
 @MethodPermissions({
-  'GET': [ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER],
-  'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER],
+  'GET': [ROLES.SYSTEM, ROLES.IFDAUSER],
+  'POST': [ROLES.SYSTEM]
 })
-@Controller('example')
-export class ExampleController {
-  
+@Controller('mixed')
+export class MixedController {
   @Get()
+  // Uses MethodPermissions: SYSTEM, IFDAUSER
   findAll() {
-    // Uses MethodPermissions: SYSTEM, IFDAUSER, IFDAMANAGER
-    return this.exampleService.findAll();
+    return this.service.findAll();
   }
 
-  @Get('public-data')
-  @Roles([]) // Override: No role required (public)
+  @Get('public')
+  @Roles([]) // Override: Public access
   getPublicData() {
-    return this.exampleService.getPublicData();
+    return this.service.getPublicData();
   }
 
   @Post('admin-only')
   @Roles([ROLES.SYSTEM]) // Override: Only SYSTEM
   adminOperation(@Body() data: any) {
-    return this.exampleService.adminOperation(data);
+    return this.service.adminOperation(data);
   }
 }
 ```
 
-### Example 4: Real-World Request126 Implementation
-
-**File**: `src/request126/request126.controller.ts`
-
-```typescript
-import { Controller } from '@nestjs/common';
-import { Crud, CrudController } from '@nestjsx/crud';
-import { Request126Service } from './request126.service';
-import { CreateRequest126Dto } from './dto/create-request126.dto';
-import { UpdateRequest126Dto } from './dto/update-request126.dto';
-import { Request126 } from './entities/request126.entity';
-import { MethodPermissions } from '../auth/roles.decorator';
-import { ROLES } from '../common/interface';
-
-@Crud({
-  model: { type: Request126 },
-  dto: {
-    create: CreateRequest126Dto,
-    update: UpdateRequest126Dto,
-  },
-  query: {
-    limit: 20,
-    maxLimit: 100,
-    alwaysPaginate: true,
-    filter: { closedAt: { $isNull: true } },
-    join: {
-      company: { eager: true },
-      line: { eager: true },
-      drug: { eager: true },
-    },
-    search: {
-      $or: [{ type: { $cont: '$value' } }],
-    },
-  },
-  routes: {
-    only: ['getManyBase', 'getOneBase', 'createOneBase', 'updateOneBase', 'deleteOneBase'],
-  },
-})
-@MethodPermissions({
-  'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
-  'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
-  'PATCH': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
-  'DELETE': [ROLES.SYSTEM, ROLES.IFDAMANAGER]
-})
-@Controller('request126')
-export class Request126Controller implements CrudController<Request126Service> {
-  constructor(public service: Request126Service) {}
-}
-```
+---
 
 ## Best Practices
 
-### 1. Permission Hierarchy
-
-Design permissions from most restrictive to least restrictive:
-
-```typescript
-@MethodPermissions({
-  'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER], // Most permissive
-  'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],                                    // Moderate
-  'PATCH': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],                                   // Moderate  
-  'DELETE': [ROLES.SYSTEM, ROLES.IFDAMANAGER]                                              // Most restrictive
-})
-```
-
-### 2. Consistent Role Usage
-
-Establish consistent role patterns across controllers:
-
-- **Read operations (GET)**: Include user-facing roles
-- **Create/Update (POST/PATCH)**: Administrative roles only
-- **Delete operations**: Highest privilege roles only
-
-### 3. Entity Configuration for @nestjsx/crud
-
-Ensure entities include relation properties for joins:
-
-```typescript
-export class ExampleEntity {
-  id: number;
-  name: string;
-  companyId: number;
-  
-  // Relations (for @nestjsx/crud joins)
-  company?: Company;
-  relatedItems?: RelatedItem[];
-}
-```
-
-### 4. HTTP Method Mapping
-
-Always match your method permissions to actual generated routes:
-
-- `@nestjsx/crud` uses **PATCH** for updates, not PUT
-- Verify generated routes with `nest start --watch` and check logs
-
-### 5. Fallback Strategy
-
-The system gracefully falls back to `@Roles` decorator if no `@MethodPermissions` is defined:
-
-```typescript
-// This still works!
-@Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER])
-@Controller('legacy')
-export class LegacyController {
-  // All methods require SYSTEM or IFDAMANAGER
-}
-```
-
-## Migration Guide
-
-### Step 1: Identify Controllers for Migration
-
-Look for controllers that need different permissions per operation:
-
-```bash
-# Find controllers with multiple @Roles decorators
-grep -r "@Roles" src/ --include="*.controller.ts"
-```
-
-### Step 2: Analyze Current Permissions
-
-For each controller, document current permissions:
-
-```typescript
-// Before
-class ExampleController {
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER])
-  @Get()
-  findAll() {}
-
-  @Roles([ROLES.SYSTEM])
-  @Post()
-  create() {}
-
-  @Roles([ROLES.SYSTEM])
-  @Delete(':id')
-  remove() {}
-}
-```
-
-### Step 3: Convert to Method Permissions
-
-```typescript
-// After
-@MethodPermissions({
-  'GET': [ROLES.SYSTEM, ROLES.IFDAUSER],
-  'POST': [ROLES.SYSTEM],
-  'DELETE': [ROLES.SYSTEM]
-})
-class ExampleController {
-  @Get()
-  findAll() {} // No decorator needed
-
-  @Post()
-  create() {} // No decorator needed
-
-  @Delete(':id')
-  remove() {} // No decorator needed
-}
-```
-
-### Step 4: Test Migration
-
-1. **Unit Tests**: Verify guard behavior
-2. **Integration Tests**: Test actual endpoints
-3. **Manual Testing**: Use different user roles
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. "Access Denied" for Valid Users
-
-**Problem**: Method permissions don't match actual HTTP methods
-
-**Solution**: Check generated routes vs configured permissions
-
-```typescript
-// ❌ Wrong: @nestjsx/crud uses PATCH, not PUT
-@MethodPermissions({
-  'PUT': [ROLES.SYSTEM]
-})
-
-// ✅ Correct
-@MethodPermissions({
-  'PATCH': [ROLES.SYSTEM]
-})
-```
-
-#### 2. Joins Not Working with @nestjsx/crud
-
-**Problem**: Entity missing relation properties
-
-**Solution**: Add relation properties to entity
-
-```typescript
-// ❌ Wrong
-export class Example {
-  id: number;
-  companyId: number;
-}
-
-// ✅ Correct  
-export class Example {
-  id: number;
-  companyId: number;
-  company?: Company; // Add relation property
-}
-```
-
-#### 3. Method Permissions Not Applied
-
-**Problem**: Controller uses individual `@Roles` decorators
-
-**Solution**: `@Roles` on methods override `@MethodPermissions` on class
-
-```typescript
-@MethodPermissions({
-  'GET': [ROLES.SYSTEM]
-})
-class ExampleController {
-  @Get()
-  @Roles([ROLES.COMPANYOTHER]) // This overrides MethodPermissions!
-  findAll() {}
-}
-```
-
-#### 4. TypeScript Errors
-
-**Problem**: Missing imports or type definitions
-
-**Solution**: Ensure proper imports
-
-```typescript
-import { MethodPermissions } from '../auth/roles.decorator';
-import { ROLES } from '../common/interface';
-```
-
-### Debugging Guide
-
-#### 1. Check Guard Execution
-
-Add logging to `EnhancedRolesGuard`:
-
-```typescript
-canActivate(context: ExecutionContext): boolean {
-  const methodPermissions = this.reflector.getAllAndOverride(MethodPermissions, [
-    context.getHandler(),
-    context.getClass(),
-  ]);
-  
-  console.log('Method permissions:', methodPermissions);
-  console.log('HTTP method:', context.switchToHttp().getRequest().method);
-  console.log('User role:', context.switchToHttp().getRequest().user?.role);
-  
-  // ... rest of the method
-}
-```
-
-#### 2. Verify Route Generation
-
-Check what routes are actually generated:
-
-```bash
-# Start server and check logs
-npm run start:dev
-
-# Or use NestJS CLI
-nest start --watch
-```
-
-#### 3. Test with curl
-
-```bash
-# Test GET endpoint
-curl -H "Authorization: Bearer <token>" http://localhost:3000/request126
-
-# Test POST endpoint
-curl -X POST -H "Authorization: Bearer <token>" \
-     -H "Content-Type: application/json" \
-     -d '{"type":"test"}' \
-     http://localhost:3000/request126
-```
-
-## Writing New Modules with Method-Based Permissions
-
-### Module Creation Checklist
-
-When creating a new module, follow this checklist:
-
-#### 1. ✅ Define Entity with Relations
-
-```typescript
-// entities/example.entity.ts
-export class Example {
-  id: number;
-  name: string;
-  companyId: number;
-  
-  // Relations for joins
-  company?: Company;
-  createdBy?: Person;
-}
-```
-
-#### 2. ✅ Create DTOs
-
-```typescript
-// dto/create-example.dto.ts
-export class CreateExampleDto {
-  @IsString()
-  name: string;
-  
-  @IsInt()
-  companyId: number;
-}
-
-// dto/update-example.dto.ts
-export class UpdateExampleDto extends PartialType(CreateExampleDto) {}
-```
-
-#### 3. ✅ Implement Service
-
-```typescript
-// example.service.ts
-@Injectable()
-export class ExampleService {
-  constructor(private prisma: DatabaseService) {}
-  
-  // Standard CRUD methods
-  async findAll() { /* ... */ }
-  async findOne(id: number) { /* ... */ }
-  async create(data: CreateExampleDto) { /* ... */ }
-  async update(id: number, data: UpdateExampleDto) { /* ... */ }
-  async remove(id: number) { /* ... */ }
-}
-```
-
-#### 4. ✅ Create Controller with Method Permissions
-
-```typescript
-// example.controller.ts
-import { Controller } from '@nestjs/common';
-import { Crud, CrudController } from '@nestjsx/crud';
-import { MethodPermissions } from '../auth/roles.decorator';
-import { ROLES } from '../common/interface';
-
-@Crud({
-  model: { type: Example },
-  dto: {
-    create: CreateExampleDto,
-    update: UpdateExampleDto,
-  },
-  query: {
-    limit: 20,
-    maxLimit: 100,
-    alwaysPaginate: true,
-    join: {
-      company: { eager: true },
-    },
-  },
-})
-@MethodPermissions({
-  'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
-  'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
-  'PATCH': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
-  'DELETE': [ROLES.SYSTEM, ROLES.IFDAMANAGER]
-})
-@Controller('example')
-export class ExampleController implements CrudController<ExampleService> {
-  constructor(public service: ExampleService) {}
-}
-```
-
-#### 5. ✅ Configure Module
-
-```typescript
-// example.module.ts
-@Module({
-  imports: [DatabaseModule],
-  controllers: [ExampleController],
-  providers: [ExampleService],
-  exports: [ExampleService],
-})
-export class ExampleModule {}
-```
-
-#### 6. ✅ Add to App Module
-
-```typescript
-// app.module.ts
-@Module({
-  imports: [
-    // ... other modules
-    ExampleModule,
-  ],
-  // ...
-})
-export class AppModule {}
-```
-
-### Permission Design Template
-
-Use this template for designing permissions:
+### 1. Permission Design Template
 
 ```typescript
 @MethodPermissions({
@@ -691,15 +364,394 @@ Use this template for designing permissions:
 })
 ```
 
+### 2. Service Structure for CRUD
+
+```typescript
+@Injectable()
+export class ExampleService {
+  constructor(private prisma: DatabaseService) {}
+  
+  // @nestjsx/crud compatible methods
+  async findMany(query?: any) {
+    return this.prisma.example.findMany({
+      ...query,
+      include: { company: true }
+    });
+  }
+
+  async findOne(id: number) {
+    return this.prisma.example.findUnique({
+      where: { id },
+      include: { company: true }
+    });
+  }
+
+  async create(data: CreateExampleDto) {
+    return this.prisma.example.create({
+      data,
+      include: { company: true }
+    });
+  }
+
+  async update(id: number, data: UpdateExampleDto) {
+    return this.prisma.example.update({
+      where: { id },
+      data,
+      include: { company: true }
+    });
+  }
+
+  async remove(id: number) {
+    return this.prisma.example.delete({ 
+      where: { id },
+      include: { company: true }
+    });
+  }
+}
+```
+
+### 3. Entity Configuration
+
+```typescript
+export class ExampleEntity {
+  id: number;
+  name: string;
+  companyId: number;
+  
+  // Relations for @nestjsx/crud joins
+  company?: Company;
+  relatedItems?: RelatedItem[];
+}
+```
+
+### 4. DTO Best Practices
+
+```typescript
+export class CreateExampleDto {
+  @ApiProperty({
+    description: 'Name of the example',
+    example: 'Example Name',
+    minLength: 1
+  })
+  @IsString()
+  @MinLength(1)
+  name: string;
+
+  @ApiProperty({
+    description: 'Company ID',
+    example: 1,
+    minimum: 1
+  })
+  @IsInt()
+  @Min(1)
+  @Transform(({ value }) => parseInt(value))
+  companyId: number;
+}
+```
+
+---
+
+## API Documentation
+
+### Swagger Configuration
+
+**File**: `src/config/swagger.config.ts`
+
+```typescript
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { INestApplication } from '@nestjs/common';
+
+export class SwaggerConfig {
+  static createDocumentConfig() {
+    return new DocumentBuilder()
+      .setTitle('GMP Backend API')
+      .setDescription('Good Manufacturing Practice (GMP) Backend Service API Documentation')
+      .setVersion('1.0.0')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'JWT',
+          description: 'JWT Authorization using the Bearer scheme',
+          in: 'header',
+        },
+        'bearer-key'
+      )
+      .addTag('request126', 'Request 126 Management')
+      .addTag('company', 'Company Management')
+      .build();
+  }
+
+  static setup(app: INestApplication, path: string = 'api-docs') {
+    const config = this.createDocumentConfig();
+    const document = SwaggerModule.createDocument(app, config);
+    
+    SwaggerModule.setup(path, app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
+        displayOperationId: false,
+        filter: true,
+        tryItOutEnabled: true,
+      },
+      customSiteTitle: 'GMP Backend API Documentation',
+    });
+    
+    return document;
+  }
+}
+```
+
+### Controller Documentation
+
+```typescript
+@ApiTags('request126')
+@ApiBearerAuth('bearer-key')
+@Controller('request126')
+export class Request126Controller {
+  @Get()
+  @ApiOperation({ 
+    summary: 'List all requests',
+    description: 'Get paginated list of non-closed requests with filtering capabilities'
+  })
+  @ApiResponse({ status: 200, description: 'Requests retrieved successfully' })
+  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 403, description: 'Forbidden' })
+  findAll() {
+    return this.service.findAll();
+  }
+}
+```
+
+### Documentation Features
+
+- **JWT Authentication**: Built-in Bearer token support
+- **Interactive Testing**: Try It Out functionality
+- **Persistent Auth**: Authentication persists across page refreshes
+- **Advanced Filtering**: Search and filter in UI
+- **Permission Display**: Clear indication of required permissions
+
+Access documentation at: `http://localhost:8000/api-docs`
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### ❌ Access Denied for Valid Users
+
+**Problem**: Method permissions don't match actual HTTP methods
+
+```typescript
+// Wrong: @nestjsx/crud uses PATCH, not PUT
+@MethodPermissions({
+  'PUT': [ROLES.SYSTEM]
+})
+
+// Correct:
+@MethodPermissions({
+  'PATCH': [ROLES.SYSTEM]
+})
+```
+
+#### ❌ Invalid CRUD Configuration
+
+**Problem**: Incorrect @nestjsx/crud filter syntax
+
+```typescript
+// Wrong:
+@Crud({
+  query: {
+    filter: { closedAt: { $isNull: true } }, // Invalid syntax
+  }
+})
+
+// Correct:
+@Crud({
+  query: {
+    filter: { closedAt: { $isnull: true } }, // Correct syntax
+  }
+})
+```
+
+#### ❌ Missing Entity Relations
+
+**Problem**: Entity missing relation properties
+
+```typescript
+// Wrong:
+export class Example {
+  id: number;
+  companyId: number;
+}
+
+// Correct:
+export class Example {
+  id: number;
+  companyId: number;
+  company?: Company; // Add relation property
+}
+```
+
+### Debugging Steps
+
+1. **Check Route Generation**
+   ```bash
+   npm run start:dev
+   # Check console logs for generated routes
+   ```
+
+2. **Test with curl**
+   ```bash
+   # Test GET endpoint
+   curl -H "Authorization: Bearer <token>" \
+        http://localhost:8000/api/request126
+
+   # Test POST endpoint
+   curl -X POST \
+        -H "Authorization: Bearer <token>" \
+        -H "Content-Type: application/json" \
+        -d '{"type":"test"}' \
+        http://localhost:8000/api/request126
+   ```
+
+3. **Add Guard Logging**
+   ```typescript
+   canActivate(context: ExecutionContext): boolean {
+     console.log('Method permissions:', methodPermissions);
+     console.log('HTTP method:', request.method);
+     console.log('User role:', request.user?.role);
+     // ... rest of method
+   }
+   ```
+
+---
+
+## Migration Guide
+
+### Step 1: Identify Controllers
+
+Find controllers needing different permissions per operation:
+
+```bash
+grep -r "@Roles" src/ --include="*.controller.ts"
+```
+
+### Step 2: Analyze Current Permissions
+
+Document existing permission patterns:
+
+```typescript
+// Before
+class ExampleController {
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER])
+  @Get()
+  findAll() {}
+
+  @Roles([ROLES.SYSTEM])
+  @Post()
+  create() {}
+}
+```
+
+### Step 3: Convert to Method Permissions
+
+```typescript
+// After
+@MethodPermissions({
+  'GET': [ROLES.SYSTEM, ROLES.IFDAUSER],
+  'POST': [ROLES.SYSTEM]
+})
+class ExampleController {
+  @Get()
+  findAll() {} // No decorator needed
+
+  @Post()
+  create() {} // No decorator needed
+}
+```
+
+### Step 4: Test Migration
+
+1. **Unit Tests**: Verify guard behavior
+2. **Integration Tests**: Test actual endpoints  
+3. **Manual Testing**: Use different user roles
+
+---
+
+## Module Creation Checklist
+
+When creating a new module with HTTP method permissions:
+
+### ✅ 1. Define Entity
+```typescript
+export class Example {
+  id: number;
+  name: string;
+  companyId: number;
+  company?: Company; // For joins
+}
+```
+
+### ✅ 2. Create DTOs
+```typescript
+export class CreateExampleDto {
+  @IsString() @MinLength(1)
+  name: string;
+  
+  @IsInt() @Min(1)
+  companyId: number;
+}
+```
+
+### ✅ 3. Implement Service
+```typescript
+@Injectable()
+export class ExampleService {
+  // Implement: findMany, findOne, create, update, remove
+}
+```
+
+### ✅ 4. Create Controller
+```typescript
+@MethodPermissions({
+  'GET': [ROLES.SYSTEM, ROLES.IFDAUSER],
+  'POST': [ROLES.SYSTEM],
+  'PATCH': [ROLES.SYSTEM],
+  'DELETE': [ROLES.SYSTEM]
+})
+@Controller('example')
+export class ExampleController {
+  constructor(public service: ExampleService) {}
+}
+```
+
+### ✅ 5. Configure Module
+```typescript
+@Module({
+  controllers: [ExampleController],
+  providers: [ExampleService],
+  exports: [ExampleService]
+})
+export class ExampleModule {}
+```
+
+---
+
 ## Conclusion
 
-The HTTP method permissions system provides fine-grained access control while maintaining NestJS best practices. It allows for:
+The HTTP Method Permissions system provides:
 
-- **Granular access control** per HTTP method
-- **Backward compatibility** with existing `@Roles` decorators  
-- **Type safety** and excellent IDE support
-- **Maintainable permission logic** at the controller level
+- **🎯 Fine-grained access control** per HTTP method
+- **🔄 Backward compatibility** with existing `@Roles` decorators
+- **🛡️ Type safety** with full TypeScript support
+- **📈 Scalable architecture** that grows with your application
+- **📚 Comprehensive documentation** with Swagger integration
 
-This approach scales well as your application grows and provides clear, auditable permission boundaries for different user operations.
+This approach ensures clear, auditable permission boundaries while maintaining NestJS best practices and developer experience.
 
-For questions or improvements to this system, please refer to the implementation in `src/auth/` and the working example in `src/request126/`.
+**For support or improvements**, refer to:
+- Implementation: `src/auth/`
+- Working example: `src/request126/`
+- API documentation: `http://localhost:8000/api-docs`
