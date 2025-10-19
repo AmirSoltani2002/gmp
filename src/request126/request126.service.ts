@@ -8,35 +8,11 @@ import { FindAllRequest126Dto } from './dto/find-all-request126.dto';
 export class Request126Service {
   constructor(private prisma: DatabaseService) {}
 
-  async findAll(query: FindAllRequest126Dto) {
-    const { page = 1, limit = 20, type, companyId, search } = query;
-    const skip = (page - 1) * limit;
-
-    const where: any = {};
-    if (type) where.type = { contains: type, mode: 'insensitive' };
-    if (companyId) where.companyId = companyId;
-    if (search) where.type = { contains: search, mode: 'insensitive' };
-
-    const [items, total] = await Promise.all([
-      this.prisma.request126.findMany({
-        where,
-        skip,
-        take: limit,
-        include: { company: true, line: true, drug: true },
-      }),
-      this.prisma.request126.count({ where }),
-    ]);
-
-    return {
-      results: items,
-      count: total,
-      next:
-        skip + limit < total
-          ? `/api/request126?page=${page + 1}&limit=${limit}`
-          : null,
-      previous:
-        page > 1 ? `/api/request126?page=${page - 1}&limit=${limit}` : null,
-    };
+  async findMany(query?: any) {
+    return this.prisma.request126.findMany({
+      ...query,
+      include: { company: true, line: true, drug: true },
+    });
   }
 
   async findOne(id: number) {
@@ -61,7 +37,50 @@ export class Request126Service {
     });
   }
 
+  async delete(id: number) {
+    return this.prisma.request126.delete({ 
+      where: { id },
+      include: { company: true, line: true, drug: true },
+    });
+  }
+
+  async findAll(query: FindAllRequest126Dto) {
+    const { page = 1, limit = 20, type, companyId, search } = query;
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+    
+    if (type) where.type = { contains: type, mode: 'insensitive' };
+    if (companyId) where.companyId = companyId;
+    if (search) where.type = { contains: search, mode: 'insensitive' };
+    
+    where.closedAt = null;
+
+    const [items, total] = await Promise.all([
+      this.prisma.request126.findMany({
+        where,
+        skip,
+        take: limit,
+        include: { company: true, line: true, drug: true },
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.request126.count({ where }),
+    ]);
+
+    return {
+      results: items,
+      count: total,
+      next:
+        skip + limit < total
+          ? `/api/request126?page=${page + 1}&limit=${limit}`
+          : null,
+      previous:
+        page > 1 ? `/api/request126?page=${page - 1}&limit=${limit}` : null,
+    };
+  }
+
+  // Alias methods for backward compatibility
   async remove(id: number) {
-    return this.prisma.request126.delete({ where: { id } });
+    return this.delete(id);
   }
 }

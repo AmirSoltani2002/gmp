@@ -1,25 +1,81 @@
-import { IsString, IsInt, IsNumber, IsOptional, IsDateString } from 'class-validator';
+import { IsString, IsInt, IsNumber, IsOptional, IsDateString, MinLength, Min } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class CreateRequest126Dto {
+  @ApiProperty({
+    description: 'Type of the request (e.g., safety-assessment, quality-check)',
+    example: 'safety-assessment',
+    minLength: 1,
+    type: String
+  })
   @IsString()
+  @MinLength(1, { message: 'Type cannot be empty' })
   type: string;
 
-  @IsInt()
+  @ApiProperty({
+    description: 'ID of the company making the request',
+    example: 1,
+    minimum: 1,
+    type: Number
+  })
+  @IsInt({ message: 'Company ID must be an integer' })
+  @Min(1, { message: 'Company ID must be positive' })
+  @Transform(({ value }) => parseInt(value))
   companyId: number;
 
-  @IsInt()
+  @ApiProperty({
+    description: 'ID of the production line',
+    example: 2,
+    minimum: 1,
+    type: Number
+  })
+  @IsInt({ message: 'Line ID must be an integer' })
+  @Min(1, { message: 'Line ID must be positive' })
+  @Transform(({ value }) => parseInt(value))
   lineId: number;
 
-  @IsInt()
+  @ApiProperty({
+    description: 'ID of the drug being processed',
+    example: 3,
+    minimum: 1,
+    type: Number
+  })
+  @IsInt({ message: 'Drug ID must be an integer' })
+  @Min(1, { message: 'Drug ID must be positive' })
+  @Transform(({ value }) => parseInt(value))
   drugId: number;
 
-  @IsInt()
+  @ApiProperty({
+    description: 'Declared Occupational Exposure Band (OEB) value',
+    example: 4,
+    minimum: 0,
+    type: Number
+  })
+  @IsInt({ message: 'Drug OEB must be an integer' })
+  @Min(0, { message: 'Drug OEB must be non-negative' })
+  @Transform(({ value }) => parseInt(value))
   drugOEB_declared: number;
 
-  @IsNumber()
+  @ApiProperty({
+    description: 'Declared Occupational Exposure Limit (OEL) value in mg/m³',
+    example: 0.5,
+    minimum: 0,
+    type: Number
+  })
+  @IsNumber({}, { message: 'Drug OEL must be a number' })
+  @Min(0, { message: 'Drug OEL must be non-negative' })
+  @Transform(({ value }) => parseFloat(value))
   drugOEL_declared: number;
 
+  @ApiPropertyOptional({
+    description: 'Date when the request was closed (ISO 8601 format)',
+    example: '2025-10-19T10:30:00Z',
+    type: String,
+    format: 'date-time',
+    nullable: true
+  })
   @IsOptional()
-  @IsDateString()
+  @IsDateString({}, { message: 'Closed date must be a valid ISO 8601 date string' })
   closedAt?: string;
 }
