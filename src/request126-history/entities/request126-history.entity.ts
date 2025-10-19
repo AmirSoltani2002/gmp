@@ -11,7 +11,7 @@ export class Request126History {
   createdAt: Date;
   updatedAt: Date;
   
-  // Relations (for @nestjsx/crud joins)
+  // Relations (for Prisma includes)
   request?: any;
   actor?: any;
   toAssignee?: any;

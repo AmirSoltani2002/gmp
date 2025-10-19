@@ -4,7 +4,7 @@ import { DatabaseService } from '../database/database.service';
 
 describe('Request126HistoryService', () => {
   let service: Request126HistoryService;
-  let prisma: DatabaseService;
+  let db: DatabaseService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -15,7 +15,7 @@ describe('Request126HistoryService', () => {
           useValue: {
             request126History: {
               findMany: jest.fn(),
-              findUnique: jest.fn(),
+              findUniqueOrThrow: jest.fn(),
               create: jest.fn(),
               update: jest.fn(),
               delete: jest.fn(),
@@ -28,7 +28,7 @@ describe('Request126HistoryService', () => {
     }).compile();
 
     service = module.get<Request126HistoryService>(Request126HistoryService);
-    prisma = module.get<DatabaseService>(DatabaseService);
+    db = module.get<DatabaseService>(DatabaseService);
   });
 
   it('should be defined', () => {
@@ -46,11 +46,11 @@ describe('Request126HistoryService', () => {
       toAssigneeId: 2
     };
     
-    prisma.request126History.findUnique = jest.fn().mockResolvedValue(mockHistory);
+    db.request126History.findUniqueOrThrow = jest.fn().mockResolvedValue(mockHistory);
 
     const result = await service.findOne(1);
 
-    expect(prisma.request126History.findUnique).toHaveBeenCalledWith({
+    expect(db.request126History.findUniqueOrThrow).toHaveBeenCalledWith({
       where: { id: 1 },
       include: { 
         request: {
@@ -85,11 +85,11 @@ describe('Request126HistoryService', () => {
       updatedAt: new Date()
     };
     
-    prisma.request126History.create = jest.fn().mockResolvedValue(mockCreated);
+    db.request126History.create = jest.fn().mockResolvedValue(mockCreated);
 
     const result = await service.create(createDto);
 
-    expect(prisma.request126History.create).toHaveBeenCalledWith({
+    expect(db.request126History.create).toHaveBeenCalledWith({
       data: {
         ...createDto,
         endedAt: null,
@@ -126,11 +126,11 @@ describe('Request126HistoryService', () => {
 
     const mockCount = 1;
 
-    prisma.$transaction = jest.fn().mockResolvedValue([mockItems, mockCount]);
+    db.$transaction = jest.fn().mockResolvedValue([mockItems, mockCount]);
 
     const result = await service.findAll(query);
 
-    expect(prisma.$transaction).toHaveBeenCalled();
+    expect(db.$transaction).toHaveBeenCalled();
     expect(result).toEqual({
       data: mockItems,
       totalItems: mockCount,
@@ -140,6 +140,36 @@ describe('Request126HistoryService', () => {
     });
   });
 
+  it('should update a history entry', async () => {
+    const updateDto = { message: 'Updated message' };
+    const mockUpdated = { 
+      id: 1, 
+      message: 'Updated message',
+      action: 'approved'
+    };
+    
+    db.request126History.update = jest.fn().mockResolvedValue(mockUpdated);
+
+    const result = await service.update(1, updateDto);
+
+    expect(db.request126History.update).toHaveBeenCalledWith({
+      where: { id: 1 },
+      data: updateDto,
+      include: { 
+        request: {
+          include: {
+            company: true,
+            line: true,
+            drug: true
+          }
+        },
+        actor: true,
+        toAssignee: true
+      },
+    });
+    expect(result).toEqual(mockUpdated);
+  });
+
   it('should delete a history entry', async () => {
     const historyId = 1;
     const mockDeleted = {
@@ -147,11 +177,11 @@ describe('Request126HistoryService', () => {
       action: 'deleted',
     };
     
-    prisma.request126History.delete = jest.fn().mockResolvedValue(mockDeleted);
+    db.request126History.delete = jest.fn().mockResolvedValue(mockDeleted);
 
-    const result = await service.delete(historyId);
+    const result = await service.remove(historyId);
 
-    expect(prisma.request126History.delete).toHaveBeenCalledWith({
+    expect(db.request126History.delete).toHaveBeenCalledWith({
       where: { id: historyId },
       include: { 
         request: {
@@ -166,5 +196,67 @@ describe('Request126HistoryService', () => {
       },
     });
     expect(result).toEqual(mockDeleted);
+  });
+
+  it('should find histories by request', async () => {
+    const mockHistories = [
+      {
+        id: 1,
+        requestId: 123,
+        action: 'created'
+      }
+    ];
+    
+    db.request126History.findMany = jest.fn().mockResolvedValue(mockHistories);
+
+    const result = await service.findByRequest(123);
+
+    expect(db.request126History.findMany).toHaveBeenCalledWith({
+      where: { requestId: 123 },
+      orderBy: { createdAt: 'desc' },
+      include: { 
+        request: {
+          include: {
+            company: true,
+            line: true,
+            drug: true
+          }
+        },
+        actor: true,
+        toAssignee: true
+      },
+    });
+    expect(result).toEqual(mockHistories);
+  });
+
+  it('should find histories by actor', async () => {
+    const mockHistories = [
+      {
+        id: 1,
+        actorId: 456,
+        action: 'approved'
+      }
+    ];
+    
+    db.request126History.findMany = jest.fn().mockResolvedValue(mockHistories);
+
+    const result = await service.findByActor(456);
+
+    expect(db.request126History.findMany).toHaveBeenCalledWith({
+      where: { actorId: 456 },
+      orderBy: { createdAt: 'desc' },
+      include: { 
+        request: {
+          include: {
+            company: true,
+            line: true,
+            drug: true
+          }
+        },
+        actor: true,
+        toAssignee: true
+      },
+    });
+    expect(result).toEqual(mockHistories);
   });
 });
