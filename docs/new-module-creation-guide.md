@@ -1110,4 +1110,79 @@ After creating your new module, don't forget to update the mock data generation 
 
 3. **Test your new endpoints** with realistic data immediately!
 
+## 📄 Document Module - S3 Integration Example
+
+The Document module demonstrates a specialized implementation for file management with S3/MinIO integration:
+
+### **📁 Document Module Structure**
+```
+src/document/
+├── dto/
+│   ├── upload-document.dto.ts     # File upload validation
+│   └── find-all-document.dto.ts   # Query/filtering validation
+├── entities/
+│   └── document.entity.ts         # TypeScript entity (matches Prisma)
+├── document.controller.ts         # REST endpoints (System Admin only)
+├── document.service.ts            # Business logic with S3 operations
+├── document.s3.service.ts         # Minimal S3 service integration
+└── document.module.ts             # Module configuration
+```
+
+### **🔐 System Admin Only Access**
+```typescript
+@MethodPermissions({
+  'GET': [ROLES.SYSTEM],
+  'POST': [ROLES.SYSTEM], 
+  'DELETE': [ROLES.SYSTEM],
+})
+@Controller('document')
+export class DocumentController {
+  // All endpoints restricted to System Admin only
+}
+```
+
+### **📊 Simplified Database Schema**
+```prisma
+model document {
+  id            Int       @id @default(autoincrement())
+  title         String
+  fileName      String    // Original file name
+  fileKey       String    @unique // S3 object key/path
+  fileSize      Int       // File size in bytes
+  mimeType      String    // MIME type
+  uploadedBy    Int?      // Optional: user who uploaded
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([fileKey])
+  @@index([uploadedBy])
+  @@index([mimeType])
+}
+```
+
+### **🌍 MinIO/S3 Configuration**
+```bash
+# Environment Variables
+AWS_REGION=us-east-1
+AWS_S3_BUCKET=gmp-backend-files
+AWS_ACCESS_KEY_ID=your-minio-user
+AWS_SECRET_ACCESS_KEY=your-minio-password
+AWS_S3_ENDPOINT=http://localhost:9000  # MinIO endpoint
+```
+
+### **🚀 API Endpoints**
+- `POST /document/upload` - Upload file with title (multipart/form-data)
+- `GET /document` - List documents with pagination and search
+- `GET /document/:id` - Get document metadata
+- `GET /document/:id/download` - Get presigned download URL
+- `DELETE /document/:id` - Delete document from S3 and database
+
+### **📝 Key Features**
+- **Fixed S3 Bucket**: All documents stored in single bucket
+- **MinIO Compatible**: Works with both AWS S3 and MinIO
+- **Minimal Design**: Only essential file operations
+- **Secure URLs**: Presigned URLs for download access
+- **Clean Deletion**: Removes both S3 object and database record
+- **System Admin Only**: Maximum security for sensitive documents
+
 For support or improvements, refer to the existing `request126` module as a reference implementation and consult the [HTTP Method Permissions Implementation Guide](./method-based-permissions.md) for detailed system architecture information.
