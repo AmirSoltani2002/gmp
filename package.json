@@ -18,7 +18,8 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "create-superuser": "tsx scripts/create-superuser.ts"
+    "create-superuser": "tsx scripts/create-superuser.ts",
+    "seed-mock-data": "tsx scripts/seed-mock-data.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.913.0",
@@ -36,7 +37,6 @@
     "@nestjs/schematics": "^11.0.9",
     "@nestjs/swagger": "^11.2.0",
     "@nestjs/testing": "^11.1.6",
-    "@nestjsx/crud": "5.0.0-alpha.3",
     "@nestjsx/crud-typeorm": "5.0.0-alpha.3",
     "@prisma/client": "^6.17.1",
     "@types/express": "^5.0.3",
@@ -45,8 +45,6 @@
     "@types/node": "^24.7.2",
     "@types/supertest": "^6.0.3",
     "bcrypt": "^6.0.0",
-    "class-transformer": "^0.5.1",
-    "class-validator": "^0.14.2",
     "commander": "^14.0.1",
     "eslint": "^9.37.0",
     "eslint-config-prettier": "^10.1.8",
@@ -65,6 +63,7 @@
     "ts-loader": "^9.5.4",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
+    "typeorm": "^0.3.27",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.0"
   },

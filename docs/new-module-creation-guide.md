@@ -21,8 +21,8 @@
 ### 🛠️ Required Knowledge
 - NestJS framework fundamentals
 - TypeScript and decorators
-- Prisma ORM
-- @nestjsx/crud library
+- Prisma ORM (primary database layer)
+- HTTP method-based permissions system
 - Swagger/OpenAPI documentation
 
 ### 🏗️ System Requirements
@@ -273,40 +273,33 @@ import { FindAllExampleModuleDto } from './dto/find-all-example-module.dto';
 
 @Injectable()
 export class ExampleModuleService {
-  constructor(private prisma: DatabaseService) {}
+  constructor(private readonly db: DatabaseService) {}
 
-  // 🔸 @nestjsx/crud compatible methods
-  async findMany(query?: any) {
-    return this.prisma.exampleModule.findMany({
-      ...query,
+  // 🔸 Standard CRUD methods using Prisma directly
+  async create(data: CreateExampleModuleDto) {
+    return this.db.exampleModule.create({
+      data,
       include: { company: true },
     });
   }
 
   async findOne(id: number) {
-    return this.prisma.exampleModule.findUnique({
+    return this.db.exampleModule.findUniqueOrThrow({
       where: { id },
-      include: { company: true },
-    });
-  }
-
-  async create(data: CreateExampleModuleDto) {
-    return this.prisma.exampleModule.create({
-      data,
       include: { company: true },
     });
   }
 
   async update(id: number, data: UpdateExampleModuleDto) {
-    return this.prisma.exampleModule.update({
+    return this.db.exampleModule.update({
       where: { id },
       data,
       include: { company: true },
     });
   }
 
-  async delete(id: number) {
-    return this.prisma.exampleModule.delete({ 
+  async remove(id: number) {
+    return this.db.exampleModule.delete({ 
       where: { id },
       include: { company: true },
     });
@@ -348,15 +341,15 @@ export class ExampleModuleService {
         };
 
     // Use transaction for consistency
-    const [items, totalItems] = await this.prisma.$transaction([
-      this.prisma.exampleModule.findMany({
+    const [items, totalItems] = await this.db.$transaction([
+      this.db.exampleModule.findMany({
         where,
         include,
         skip,
         take: +actualLimit,
         orderBy: { createdAt: 'desc' },
       }),
-      this.prisma.exampleModule.count({ where }),
+      this.db.exampleModule.count({ where }),
     ]);
 
     const totalPages = Math.ceil(totalItems / actualLimit);
@@ -372,7 +365,7 @@ export class ExampleModuleService {
 
   // 🔸 Utility methods
   async findByCompany(companyId: number) {
-    return this.prisma.exampleModule.findMany({
+    return this.db.exampleModule.findMany({
       where: { companyId },
       include: { company: true },
       orderBy: { createdAt: 'desc' },
@@ -383,11 +376,6 @@ export class ExampleModuleService {
     const current = await this.findOne(id);
     return this.update(id, { isActive: !current.isActive });
   }
-
-  // Alias for backward compatibility
-  async remove(id: number) {
-    return this.delete(id);
-  }
 }
 ```
 
@@ -396,50 +384,25 @@ export class ExampleModuleService {
 Create `src/example-module/example-module.controller.ts`:
 
 ```typescript
-import { Controller, Get, Param } from '@nestjs/common';
-import { Crud, CrudController } from '@nestjsx/crud';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { ExampleModuleService } from './example-module.service';
 import { CreateExampleModuleDto } from './dto/create-example-module.dto';
 import { UpdateExampleModuleDto } from './dto/update-example-module.dto';
-import { ExampleModule } from './entities/example-module.entity';
+import { FindAllExampleModuleDto } from './dto/find-all-example-module.dto';
 import { MethodPermissions, Roles } from '../auth/roles.decorator';
 import { ROLES } from '../common/interface';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
-@Crud({
-  model: { type: ExampleModule },
-  dto: {
-    create: CreateExampleModuleDto,
-    update: UpdateExampleModuleDto,
-  },
-  query: {
-    limit: 20,
-    maxLimit: 100,
-    alwaysPaginate: true,
-    filter: {
-      isActive: { $eq: true }, // Default: only active items
-    },
-    join: {
-      company: { eager: true },
-    },
-    sort: [
-      {
-        field: 'createdAt',
-        order: 'DESC',
-      },
-    ],
-  },
-  params: {
-    id: {
-      field: 'id',
-      type: 'number',
-      primary: true,
-    },
-  },
-  routes: {
-    only: ['getManyBase', 'getOneBase', 'createOneBase', 'updateOneBase', 'deleteOneBase'],
-  },
-})
 @MethodPermissions({
   'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
   'POST': [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
@@ -449,21 +412,60 @@ import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 @ApiTags('example-module')
 @ApiBearerAuth('bearer-key')
 @Controller('example-module')
-export class ExampleModuleController implements CrudController<ExampleModule> {
-  constructor(public service: ExampleModuleService) {}
+export class ExampleModuleController {
+  constructor(private readonly exampleModuleService: ExampleModuleService) {}
+
+  @Post()
+  @ApiOperation({ summary: 'Create a new example module' })
+  @ApiResponse({ status: 201, description: 'Module created successfully' })
+  create(@Body() createExampleModuleDto: CreateExampleModuleDto) {
+    return this.exampleModuleService.create(createExampleModuleDto);
+  }
+
+  @Get()
+  @ApiOperation({ summary: 'Get all example modules with filtering and pagination' })
+  @ApiResponse({ status: 200, description: 'Modules retrieved successfully' })
+  findAll(@Query() query: FindAllExampleModuleDto) {
+    return this.exampleModuleService.findAll(query);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a single example module by ID' })
+  @ApiResponse({ status: 200, description: 'Module found' })
+  @ApiResponse({ status: 404, description: 'Module not found' })
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.exampleModuleService.findOne(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Update an example module' })
+  @ApiResponse({ status: 200, description: 'Module updated successfully' })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateExampleModuleDto: UpdateExampleModuleDto,
+  ) {
+    return this.exampleModuleService.update(id, updateExampleModuleDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete an example module' })
+  @ApiResponse({ status: 200, description: 'Module deleted successfully' })
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.exampleModuleService.remove(id);
+  }
 
   // 🔸 Custom endpoints with specific permissions
   @Get('company/:companyId')
   @ApiOperation({ summary: 'Get modules by company' })
-  getByCompany(@Param('companyId') companyId: string) {
-    return this.service.findByCompany(+companyId);
+  getByCompany(@Param('companyId', ParseIntPipe) companyId: number) {
+    return this.exampleModuleService.findByCompany(companyId);
   }
 
   @Patch(':id/toggle-active')
   @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER])
   @ApiOperation({ summary: 'Toggle active status' })
-  toggleActive(@Param('id') id: string) {
-    return this.service.toggleActive(+id);
+  toggleActive(@Param('id', ParseIntPipe) id: number) {
+    return this.exampleModuleService.toggleActive(id);
   }
 }
 ```
@@ -898,12 +900,21 @@ npx prisma db push --preview-feature
 **Problem**: Incorrect @Crud decorator configuration
 **Solution**:
 ```typescript
-@Crud({
-  model: { type: YourEntity }, // Ensure correct entity
-  query: {
-    join: { company: { eager: true } } // Check relations exist
-  }
-})
+#### ❌ Service method not found
+
+**Problem**: Missing required service methods for controller
+**Solution**:
+```typescript
+@Injectable()
+export class ExampleService {
+  // Ensure all methods used by controller are implemented
+  async findAll(query: FindAllDto) { /* implementation */ }
+  async findOne(id: number) { /* implementation */ }
+  async create(dto: CreateDto) { /* implementation */ }
+  async update(id: number, dto: UpdateDto) { /* implementation */ }
+  async remove(id: number) { /* implementation */ }
+}
+```
 ```
 
 ### 🔧 Debug Helpers
@@ -1043,13 +1054,14 @@ async softDelete(id: number, userId: number) {
 
 ## Conclusion
 
-This guide provides a comprehensive approach to creating new modules using the HTTP method-based permissions system. By following these patterns, you'll create:
+This guide provides a comprehensive approach to creating new modules using the HTTP method-based permissions system with pure Prisma integration. By following these patterns, you'll create:
 
 - **🛡️ Secure modules** with fine-grained permission control
 - **📚 Well-documented APIs** with comprehensive Swagger integration
-- **⚡ High-performance services** with optimized database queries
+- **⚡ High-performance services** with optimized Prisma queries
 - **🧪 Testable code** with proper separation of concerns
 - **🔄 Consistent patterns** that integrate seamlessly with existing codebase
+- **🎯 Direct database access** without ORM abstraction overhead
 
 ### 🚀 Key Benefits
 
@@ -1059,6 +1071,8 @@ This guide provides a comprehensive approach to creating new modules using the H
 ✅ **Modern Patterns**: Latest NestJS and Prisma features  
 ✅ **Production Ready**: Performance optimizations and error handling  
 ✅ **Maintainable**: Clear structure and comprehensive documentation  
+✅ **Pure Prisma**: Direct database access without abstraction layers  
+✅ **Mock Data Support**: Comprehensive test data generation included  
 
 ### 📈 Next Steps
 
@@ -1067,5 +1081,33 @@ This guide provides a comprehensive approach to creating new modules using the H
 3. **Extend**: Add advanced features like caching or real-time updates
 4. **Scale**: Apply patterns to complex business domains
 5. **Optimize**: Profile and optimize based on actual usage patterns
+
+### 🎲 **Mock Data Generation**
+
+After creating your new module, don't forget to update the mock data generation script to include test data for your new entity:
+
+1. **Update the seed script** (`scripts/seed-mock-data.ts`):
+   ```typescript
+   // Add your entity to the seeding process
+   const exampleModules = [];
+   for (let i = 0; i < 15; i++) {
+     const exampleModule = await prisma.exampleModule.create({
+       data: {
+         name: `Example Module ${i + 1}`,
+         description: `Description for module ${i + 1}`,
+         companyId: randomChoice(companies).id,
+         isActive: Math.random() > 0.1, // 90% active
+       }
+     });
+     exampleModules.push(exampleModule);
+   }
+   ```
+
+2. **Run the updated script**:
+   ```bash
+   npm run seed-mock-data
+   ```
+
+3. **Test your new endpoints** with realistic data immediately!
 
 For support or improvements, refer to the existing `request126` module as a reference implementation and consult the [HTTP Method Permissions Implementation Guide](./method-based-permissions.md) for detailed system architecture information.
