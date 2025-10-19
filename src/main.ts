@@ -1,7 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { SwaggerConfig } from './config/swagger.config';
 import { PrismaExceptionFilter } from 'src/filters/prisma-exception.filter';
 
 async function bootstrap() {
@@ -20,14 +20,10 @@ async function bootstrap() {
     methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true, // allow cookies or auth headers
   });
-  const config = new DocumentBuilder()
-    .setTitle('UserInfo APIs')
-    .setDescription('Backend service API documentation')
-    .setVersion('1.0')
-    .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api-docs', app, document);
+  // Enhanced Swagger Configuration
+  SwaggerConfig.setup(app, 'api-docs');
+
   app.setGlobalPrefix('api');
   app.useGlobalFilters(new PrismaExceptionFilter());
   const port = Number(process.env.PORT) || 8000;
