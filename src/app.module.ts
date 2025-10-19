@@ -19,6 +19,7 @@ import { MachineModule } from './machine/machine.module';
 import { DrugModule } from './drug/drug.module';
 import { CompanyDrugModule } from './company-drug/company-drug.module';
 import { Request126Module } from './request126/request126.module';
+import { Request126HistoryModule } from './request126-history/request126-history.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { Request126Module } from './request126/request126.module';
     DrugModule,
     CompanyDrugModule,
     Request126Module,
+    Request126HistoryModule,
   ],
   controllers: [AppController],
   providers: [
