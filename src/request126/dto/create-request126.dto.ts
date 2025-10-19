@@ -7,7 +7,7 @@ export class CreateRequest126Dto {
     description: 'Type of the request (e.g., safety-assessment, quality-check)',
     example: 'safety-assessment',
     minLength: 1,
-    type: String
+    type: String,
   })
   @IsString()
   @MinLength(1, { message: 'Type cannot be empty' })
@@ -17,7 +17,7 @@ export class CreateRequest126Dto {
     description: 'ID of the company making the request',
     example: 1,
     minimum: 1,
-    type: Number
+    type: Number,
   })
   @IsInt({ message: 'Company ID must be an integer' })
   @Min(1, { message: 'Company ID must be positive' })
@@ -28,7 +28,7 @@ export class CreateRequest126Dto {
     description: 'ID of the production line',
     example: 2,
     minimum: 1,
-    type: Number
+    type: Number,
   })
   @IsInt({ message: 'Line ID must be an integer' })
   @Min(1, { message: 'Line ID must be positive' })
@@ -39,7 +39,7 @@ export class CreateRequest126Dto {
     description: 'ID of the drug being processed',
     example: 3,
     minimum: 1,
-    type: Number
+    type: Number,
   })
   @IsInt({ message: 'Drug ID must be an integer' })
   @Min(1, { message: 'Drug ID must be positive' })
@@ -50,7 +50,7 @@ export class CreateRequest126Dto {
     description: 'Declared Occupational Exposure Band (OEB) value',
     example: 4,
     minimum: 0,
-    type: Number
+    type: Number,
   })
   @IsInt({ message: 'Drug OEB must be an integer' })
   @Min(0, { message: 'Drug OEB must be non-negative' })
@@ -58,10 +58,10 @@ export class CreateRequest126Dto {
   drugOEB_declared: number;
 
   @ApiProperty({
-    description: 'Declared Occupational Exposure Limit (OEL) value in mg/m³',
+    description: 'Declared Occupational Exposure Limit (OEL) value in μg/m³',
     example: 0.5,
     minimum: 0,
-    type: Number
+    type: Number,
   })
   @IsNumber({}, { message: 'Drug OEL must be a number' })
   @Min(0, { message: 'Drug OEL must be non-negative' })
@@ -73,9 +73,12 @@ export class CreateRequest126Dto {
     example: '2025-10-19T10:30:00Z',
     type: String,
     format: 'date-time',
-    nullable: true
+    nullable: true,
   })
   @IsOptional()
-  @IsDateString({}, { message: 'Closed date must be a valid ISO 8601 date string' })
+  @IsDateString(
+    {},
+    { message: 'Closed date must be a valid ISO 8601 date string' },
+  )
   closedAt?: string;
 }
