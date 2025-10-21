@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
-import { DocumentS3Service } from './document.s3.service';
+import { DocumentS3Service } from '../s3/document.s3.service';
 import { UploadDocumentDto } from './dto/upload-document.dto';
 import { FindAllDocumentDto } from './dto/find-all-document.dto';
 
