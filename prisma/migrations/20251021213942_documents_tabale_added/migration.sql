@@ -1,5 +1,18 @@
--- AlterTable
-ALTER TABLE "document" ADD COLUMN     "description" TEXT;
+-- CreateTable
+CREATE TABLE "document" (
+    "id" SERIAL NOT NULL,
+    "title" TEXT NOT NULL,
+    "description" TEXT,
+    "fileName" TEXT NOT NULL,
+    "fileKey" TEXT NOT NULL,
+    "fileSize" INTEGER NOT NULL,
+    "mimeType" TEXT NOT NULL,
+    "uploadedBy" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "document_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "siteDocument" (
@@ -38,22 +51,28 @@ CREATE TABLE "request126Document" (
 );
 
 -- CreateIndex
-CREATE INDEX "siteDocument_siteId_idx" ON "siteDocument"("siteId");
+CREATE UNIQUE INDEX "document_fileKey_key" ON "document"("fileKey");
 
 -- CreateIndex
-CREATE INDEX "siteDocument_documentId_idx" ON "siteDocument"("documentId");
+CREATE INDEX "document_fileKey_idx" ON "document"("fileKey");
 
 -- CreateIndex
-CREATE INDEX "lineDocument_lineId_idx" ON "lineDocument"("lineId");
+CREATE INDEX "document_uploadedBy_idx" ON "document"("uploadedBy");
 
 -- CreateIndex
-CREATE INDEX "lineDocument_documentId_idx" ON "lineDocument"("documentId");
+CREATE INDEX "document_mimeType_idx" ON "document"("mimeType");
 
 -- CreateIndex
-CREATE INDEX "companyDocument_companyId_idx" ON "companyDocument"("companyId");
+CREATE UNIQUE INDEX "siteDocument_documentId_key" ON "siteDocument"("documentId");
 
 -- CreateIndex
-CREATE INDEX "companyDocument_documentId_idx" ON "companyDocument"("documentId");
+CREATE UNIQUE INDEX "lineDocument_documentId_key" ON "lineDocument"("documentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "companyDocument_documentId_key" ON "companyDocument"("documentId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "request126Document_documentId_key" ON "request126Document"("documentId");
 
 -- CreateIndex
 CREATE INDEX "request126Document_requestId_idx" ON "request126Document"("requestId");

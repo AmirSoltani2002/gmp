@@ -197,10 +197,10 @@ model document {
   updatedAt     DateTime  @updatedAt
 
   // Relations to bridge tables
-  siteDocuments     siteDocument[]
-  lineDocuments     lineDocument[]
-  companyDocuments  companyDocument[]
-  request126Documents request126Document[]
+  siteDocument       siteDocument?
+  lineDocument       lineDocument?
+  companyDocument    companyDocument?
+  request126Document request126Document?
 
   @@index([fileKey])
   @@index([uploadedBy])
@@ -212,10 +212,7 @@ model siteDocument {
   site        site      @relation(fields: [siteId], references: [id])
   siteId      Int
   document    document  @relation(fields: [documentId], references: [id])
-  documentId  Int
-
-  @@index([siteId])
-  @@index([documentId])
+  documentId  Int       @unique
 }
 
 model lineDocument {
@@ -223,10 +220,7 @@ model lineDocument {
   line        line      @relation(fields: [lineId], references: [id])
   lineId      Int
   document    document  @relation(fields: [documentId], references: [id])
-  documentId  Int
-
-  @@index([lineId])
-  @@index([documentId])
+  documentId  Int       @unique
 }
 
 model companyDocument {
@@ -234,10 +228,7 @@ model companyDocument {
   company     company   @relation(fields: [companyId], references: [id])
   companyId   Int
   document    document  @relation(fields: [documentId], references: [id])
-  documentId  Int
-
-  @@index([companyId])
-  @@index([documentId])
+  documentId  Int       @unique
 }
 
 model request126Document {
@@ -245,7 +236,7 @@ model request126Document {
   request     request126 @relation(fields: [requestId], references: [id])
   requestId   Int
   document    document   @relation(fields: [documentId], references: [id])
-  documentId  Int
+  documentId  Int        @unique
 
   @@index([requestId])
   @@index([documentId])

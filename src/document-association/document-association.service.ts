@@ -1,42 +1,53 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { CreateDocumentAssociationDto } from './dto/create-document-association.dto';
 import { FindAllDocumentAssociationDto } from './dto/find-all-document-association.dto';
 import { AssociationType } from './entities/document-association.entity';
+import { DocumentService} from '../document/document.service';
 
 @Injectable()
 export class DocumentAssociationService {
-  constructor(private readonly db: DatabaseService) {}
+  constructor(
+    private readonly db: DatabaseService,
+    private readonly documentService: DocumentService
+  ) {}
 
-  // Generic method to create association for any type
+  // Create association with one-to-one constraint handling
   async createAssociation(type: AssociationType, data: CreateDocumentAssociationDto) {
     const { documentId, entityId } = data;
     
-    switch (type) {
-      case 'site':
-        return this.db.siteDocument.create({
-          data: { siteId: entityId, documentId },
-          include: { site: true, document: true }
-        });
-      case 'line':
-        return this.db.lineDocument.create({
-          data: { lineId: entityId, documentId },
-          include: { line: true, document: true }
-        });
-      case 'company':
-        return this.db.companyDocument.create({
-          data: { companyId: entityId, documentId },
-          include: { company: true, document: true }
-        });
-      case 'request126':
-        return this.db.request126Document.create({
-          data: { requestId: entityId, documentId },
-          include: { request: true, document: true }
-        });
+    try {
+      switch (type) {
+        case 'site':
+          return await this.db.siteDocument.create({
+            data: { siteId: entityId, documentId },
+            include: { site: true, document: true }
+          });
+        case 'line':
+          return await this.db.lineDocument.create({
+            data: { lineId: entityId, documentId },
+            include: { line: true, document: true }
+          });
+        case 'company':
+          return await this.db.companyDocument.create({
+            data: { companyId: entityId, documentId },
+            include: { company: true, document: true }
+          });
+        case 'request126':
+          return await this.db.request126Document.create({
+            data: { requestId: entityId, documentId },
+            include: { request: true, document: true }
+          });
+      }
+    } catch (error) {
+      if (error.code === 'P2002') {
+        throw new ConflictException(`Document ${documentId} is already associated with another ${type}`);
+      }
+      throw error;
     }
   }
 
-  // Generic method to find all associations for any type
+  // Find all associations with pagination
   async findAllAssociations(type: AssociationType, query: FindAllDocumentAssociationDto) {
     const { page = 1, pageSize = 20, documentId, entityId } = query;
     const skip = (page - 1) * pageSize;
@@ -44,13 +55,10 @@ export class DocumentAssociationService {
     let where: any = {};
     if (documentId) where.documentId = documentId;
 
-    let data: any[];
-    let totalItems: number;
-
     switch (type) {
       case 'site':
         if (entityId) where.siteId = entityId;
-        [data, totalItems] = await Promise.all([
+        const [siteData, siteTotal] = await Promise.all([
           this.db.siteDocument.findMany({
             where,
             include: { site: true, document: true },
@@ -60,10 +68,17 @@ export class DocumentAssociationService {
           }),
           this.db.siteDocument.count({ where })
         ]);
-        break;
+        return {
+          data: siteData,
+          totalItems: siteTotal,
+          totalPages: Math.ceil(siteTotal / pageSize),
+          currentPage: page,
+          pageSize
+        };
+
       case 'line':
         if (entityId) where.lineId = entityId;
-        [data, totalItems] = await Promise.all([
+        const [lineData, lineTotal] = await Promise.all([
           this.db.lineDocument.findMany({
             where,
             include: { line: true, document: true },
@@ -73,10 +88,17 @@ export class DocumentAssociationService {
           }),
           this.db.lineDocument.count({ where })
         ]);
-        break;
+        return {
+          data: lineData,
+          totalItems: lineTotal,
+          totalPages: Math.ceil(lineTotal / pageSize),
+          currentPage: page,
+          pageSize
+        };
+
       case 'company':
         if (entityId) where.companyId = entityId;
-        [data, totalItems] = await Promise.all([
+        const [companyData, companyTotal] = await Promise.all([
           this.db.companyDocument.findMany({
             where,
             include: { company: true, document: true },
@@ -86,10 +108,17 @@ export class DocumentAssociationService {
           }),
           this.db.companyDocument.count({ where })
         ]);
-        break;
+        return {
+          data: companyData,
+          totalItems: companyTotal,
+          totalPages: Math.ceil(companyTotal / pageSize),
+          currentPage: page,
+          pageSize
+        };
+
       case 'request126':
         if (entityId) where.requestId = entityId;
-        [data, totalItems] = await Promise.all([
+        const [requestData, requestTotal] = await Promise.all([
           this.db.request126Document.findMany({
             where,
             include: { request: true, document: true },
@@ -99,29 +128,60 @@ export class DocumentAssociationService {
           }),
           this.db.request126Document.count({ where })
         ]);
-        break;
+        return {
+          data: requestData,
+          totalItems: requestTotal,
+          totalPages: Math.ceil(requestTotal / pageSize),
+          currentPage: page,
+          pageSize
+        };
     }
-
-    return {
-      data,
-      totalItems,
-      totalPages: Math.ceil(totalItems / pageSize),
-      currentPage: page,
-      pageSize
-    };
   }
 
-  // Generic method to remove association
+  // Remove association with error handling
   async removeAssociation(type: AssociationType, id: number) {
-    switch (type) {
-      case 'site':
-        return this.db.siteDocument.delete({ where: { id } });
-      case 'line':
-        return this.db.lineDocument.delete({ where: { id } });
-      case 'company':
-        return this.db.companyDocument.delete({ where: { id } });
-      case 'request126':
-        return this.db.request126Document.delete({ where: { id } });
+    try {
+      let association;
+      switch (type) {
+        case 'site':
+          association = await this.db.siteDocument.findUniqueOrThrow({ where: { id } });
+          break;
+        case 'line':
+          association = await this.db.lineDocument.findUniqueOrThrow({ where: { id } });
+          break;
+        case 'company':
+          association = await this.db.companyDocument.findUniqueOrThrow({ where: { id } });
+          break;
+        case 'request126':
+          association = await this.db.request126Document.findUniqueOrThrow({ where: { id } });
+          break;
+      }
+
+      const documentId = association.documentId;
+      
+      switch (type) {
+        case 'site':
+          await this.db.siteDocument.delete({ where: { id } });
+          break;
+        case 'line':
+          await this.db.lineDocument.delete({ where: { id } });
+          break;
+        case 'company':
+          await this.db.companyDocument.delete({ where: { id } });
+          break;
+        case 'request126':
+          await this.db.request126Document.delete({ where: { id } });
+          break;
+      }
+
+      await this.documentService.remove(documentId);
+
+      return { message: 'Association and document removed successfully' };
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`${type} association with id ${id} not found`);
+      }
+      throw error;
     }
   }
 
@@ -151,29 +211,36 @@ export class DocumentAssociationService {
     }
   }
 
-  // Get entities that have a specific document
-  async getEntitiesForDocument(type: AssociationType, documentId: number) {
-    switch (type) {
-      case 'site':
-        return this.db.siteDocument.findMany({
-          where: { documentId },
-          include: { site: true }
-        });
-      case 'line':
-        return this.db.lineDocument.findMany({
-          where: { documentId },
-          include: { line: true }
-        });
-      case 'company':
-        return this.db.companyDocument.findMany({
-          where: { documentId },
-          include: { company: true }
-        });
-      case 'request126':
-        return this.db.request126Document.findMany({
-          where: { documentId },
-          include: { request: true }
-        });
+  // Get entities that have a specific document (one-to-one relationship)
+  async getEntityForDocument(type: AssociationType, documentId: number) {
+    try {
+      switch (type) {
+        case 'site':
+          return await this.db.siteDocument.findUniqueOrThrow({
+            where: { documentId },
+            include: { site: true }
+          });
+        case 'line':
+          return await this.db.lineDocument.findUniqueOrThrow({
+            where: { documentId },
+            include: { line: true }
+          });
+        case 'company':
+          return await this.db.companyDocument.findUniqueOrThrow({
+            where: { documentId },
+            include: { company: true }
+          });
+        case 'request126':
+          return await this.db.request126Document.findUniqueOrThrow({
+            where: { documentId },
+            include: { request: true }
+          });
+      }
+    } catch (error) {
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`No ${type} association found for document ${documentId}`);
+      }
+      throw error;
     }
   }
 
