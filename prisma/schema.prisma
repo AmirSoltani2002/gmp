@@ -35,7 +35,6 @@ model company {
   sites        site[]
   brandOwnerDrugs companyDrug[] @relation("BrandOwnerCompany")
   supplierDrugs   companyDrug[] @relation("SupplierCompany")
-  producerDrugs   companyDrug[] @relation("ProducerCompany")
   request126s     request126[]
   documents       companyDocument[]       // attached documents
 
@@ -271,8 +270,6 @@ model companyDrug {
   status        String
   supplier      company  @relation("SupplierCompany", fields: [supplierId], references: [id])
   supplierId    Int
-  producer      company? @relation("ProducerCompany", fields: [producerId], references: [id])
-  producerId    Int?
   line          line?    @relation("LineCompany", fields: [lineId], references: [id])
   lineId        Int?
   
