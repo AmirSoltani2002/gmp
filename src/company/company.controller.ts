@@ -149,6 +149,19 @@ export class CompanyController {
       return this.companyService.findOne(+id);
     } else {
       throw new UnauthorizedException("This is not your company!")
+    } 
+  }
+
+  @Get('eudra/:code')
+  async getEUDRA(@Param('code') code: string) {
+    
+    const body = `formid=frmGMPCSearch&certificateNumber=${encodeURIComponent(code)}&fromDate=&toDate=&dunsNumber1=&dunsNumber2=&dunsNumber3=&siteName=&city=&country=all.countries&postcode=&omsOrganisationId=&omsLocationId=&gmpcRefKey=&ncaRefKey=&additionalDetailsOnUnitsInspected=&miaAuthNumber=&includeNcr=on&btnSearchGMPC=clicked&isReset=true`
+    const resp = await fetch("https://eudragmdp.ema.europa.eu/inspections/gmpc/searchGMPCompliance.do", {
+      method: "POST",
+      body,
+    });
+    return {
+      body, resp
     }
     
   }
