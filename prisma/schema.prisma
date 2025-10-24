@@ -73,6 +73,7 @@ model person {
   email              String?
   nationalId         String?
   birthCity          String?
+  birthProvince      String?
   birthDate          DateTime?
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
