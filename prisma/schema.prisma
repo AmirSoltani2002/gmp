@@ -149,6 +149,7 @@ model line {
   machines   machine[]
   request126s     request126[]
   documents       lineDocument[]          // attached documents
+  companyDrugs   companyDrug[] @relation("LineCompany")
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -272,6 +273,8 @@ model companyDrug {
   supplierId    Int
   producer      company? @relation("ProducerCompany", fields: [producerId], references: [id])
   producerId    Int?
+  line          line?    @relation("LineCompany", fields: [lineId], references: [id])
+  lineId        Int?
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
