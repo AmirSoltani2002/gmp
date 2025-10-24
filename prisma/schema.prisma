@@ -281,6 +281,8 @@ model companyDrug {
 
   @@index([drugId])
   @@index([brandOwnerId])
+  @@index([lineId])
+  @@index([supplierId])
 }
 
 model request126 {
