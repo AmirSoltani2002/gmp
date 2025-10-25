@@ -22,6 +22,7 @@ import { Request126Module } from './request126/request126.module';
 import { Request126HistoryModule } from './request126-history/request126-history.module';
 import { DocumentModule } from './document/document.module';
 import { DocumentAssociationModule } from './document-association/document-association.module';
+import { MedicalReportModule } from './medical-report/medical-report.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { DocumentAssociationModule } from './document-association/document-assoc
     Request126Module,
     Request126HistoryModule,
     DocumentModule,
+  MedicalReportModule,
     DocumentAssociationModule,
   ],
   controllers: [AppController],
