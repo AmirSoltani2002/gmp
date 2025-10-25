@@ -77,7 +77,7 @@ export class CompanyController {
     if(await this.isUserForThisCompany(req, id)) {
       return this.companyService.findOneContact(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException("This is not your company!")
     }
     
   }
@@ -89,7 +89,7 @@ export class CompanyController {
     if(await this.isUserForThisCompany(req, id)) {
       return this.companyService.findOneUsers(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException("This is not your company!")
     }
     
   }
@@ -98,12 +98,7 @@ export class CompanyController {
   
   @Get('site/:id')
   async findOneSites(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
-      return this.companyService.findOneSites(+id);
-    } else {
-      throw new UnauthorizedException("This is not your company!")
-    }
-    
+    return this.companyService.findOneSites(+id);
   }
 
 
@@ -113,7 +108,7 @@ export class CompanyController {
     if(await this.isUserForThisCompany(req, id)) {
       return this.companyService.findOneMachines(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException("This is not your company!")
     }
     
   }
@@ -125,7 +120,7 @@ export class CompanyController {
     if(await this.isUserForThisCompany(req, id)) {
       return this.companyService.findOneDrugs(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException("This is not your company!")
     }
     
   }
@@ -137,7 +132,7 @@ export class CompanyController {
     if(await this.isUserForThisCompany(req, id)) {
       return this.companyService.findOneRequest126s(id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException("This is not your company!")
     }
     
   }
@@ -145,11 +140,7 @@ export class CompanyController {
 
   @Get('id/:id')
   async findOne(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
-      return this.companyService.findOne(+id);
-    } else {
-      throw new UnauthorizedException("This is not your company!")
-    } 
+    return this.companyService.findOne(+id); 
   }
 
   @Get('eudra/:code')
