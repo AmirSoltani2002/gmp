@@ -2,6 +2,7 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
   Delete,
   Param,
   Query,
@@ -73,5 +74,28 @@ export class DocumentController {
   @ApiOperation({ summary: 'Get download URL for document (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
   getDownloadUrl(@Param('id', ParseIntPipe) id: number) {
     return this.documentService.getDownloadUrl(id);
+  }
+
+  @Patch(':id')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Update document metadata or replace file' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+        title: { type: 'string' },
+        description: { type: 'string' },
+      },
+    },
+  })
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: any,
+    @Request() req,
+  ) {
+    return this.documentService.update(id, file, dto, req.user?.id);
   }
 }

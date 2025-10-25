@@ -100,4 +100,38 @@ export class DocumentService {
     // Delete from database
     return this.db.document.delete({ where: { id } });
   }
+
+  async update(id: number, file: Express.Multer.File | undefined, dto: any, userId?: number) {
+    const existing = await this.findOne(id);
+
+    const data: any = {
+      title: dto.title ?? existing.title,
+      description: dto.description ?? existing.description,
+      // keep existing file fields unless replaced below
+    };
+
+    if (file) {
+      // upload new file
+      const timestamp = Date.now();
+      const fileKey = `${timestamp}-${file.originalname}`;
+      await this.s3Service.uploadFile(this.BUCKET_NAME, fileKey, file.buffer, file.mimetype);
+
+      // delete old file if exists
+      if (existing.fileKey) {
+        try {
+          await this.s3Service.deleteFile(this.BUCKET_NAME, existing.fileKey);
+        } catch (err) {
+          // don't block update on S3 delete failure; log if you have a logger
+        }
+      }
+
+      data.fileName = file.originalname;
+      data.fileKey = fileKey;
+      data.fileSize = file.size;
+      data.mimeType = file.mimetype;
+      data.uploadedBy = userId ?? existing.uploadedBy;
+    }
+
+    return this.db.document.update({ where: { id }, data });
+  }
 }
