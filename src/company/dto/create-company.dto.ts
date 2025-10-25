@@ -38,4 +38,8 @@ export class CreateCompanyDto {
     @IsEmail()
     @IsOptional()
     email?: string;
+
+    @IsString()
+    @IsOptional()
+    description?: string;
 }

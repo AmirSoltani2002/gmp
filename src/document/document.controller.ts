@@ -20,9 +20,9 @@ import { ROLES } from '../common/interface';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @MethodPermissions({
-  'GET': [ROLES.SYSTEM],
-  'POST': [ROLES.SYSTEM],
-  'DELETE': [ROLES.SYSTEM],
+  'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
+  'POST': [ROLES.SYSTEM, ROLES.QRP],
+  'DELETE': [ROLES.SYSTEM, ROLES.QRP],
 })
 @ApiTags('document')
 @ApiBearerAuth('bearer-key')
@@ -32,7 +32,7 @@ export class DocumentController {
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ summary: 'Upload document (System Admin only)' })
+  @ApiOperation({ summary: 'Upload document (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
   @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
@@ -58,19 +58,19 @@ export class DocumentController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all documents (System Admin only)' })
+  @ApiOperation({ summary: 'Get all documents (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
   findAll(@Query() query: FindAllDocumentDto) {
     return this.documentService.findAll(query);
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get document by ID (System Admin only)' })
+  @ApiOperation({ summary: 'Get document by ID (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.documentService.findOne(id);
   }
 
   @Get(':id/download')
-  @ApiOperation({ summary: 'Get download URL for document (System Admin only)' })
+  @ApiOperation({ summary: 'Get download URL for document (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
   getDownloadUrl(@Param('id', ParseIntPipe) id: number) {
     return this.documentService.getDownloadUrl(id);
   }

@@ -149,8 +149,19 @@ export class CompanyController {
       return this.companyService.findOne(+id);
     } else {
       throw new UnauthorizedException("This is not your company!")
+    } 
+  }
+
+  @Get('eudra/:code')
+  async getEUDRA(@Param('code') code: string) {
+    const url = `https://eudragmdp.ema.europa.eu/inspections/gmpc/searchGMPCompliance.do?ctrl=searchGMPCResultControlList&action=Drilldown&param=${code}`
+    const resp = await(await fetch(url, {
+      method: "GET",
+    })).text();
+    return {
+      url,
+      resp
     }
-    
   }
 
   @RolesNot([ROLES.COMPANYOTHER, ROLES.IFDAUSER])

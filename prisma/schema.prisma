@@ -29,15 +29,14 @@ model company {
   city                String?
   registerationDate   DateTime?
   registerationNumber String?
-  email               String?
-  contacts            contact[]
-  persons             companyPerson[] // all history entries for this company
-  sites               site[]
-  brandOwnerDrugs     companyDrug[]     @relation("BrandOwnerCompany")
-  supplierDrugs       companyDrug[]     @relation("SupplierCompany")
-  producerDrugs       companyDrug[]     @relation("ProducerCompany")
-  request126s         request126[]
-  documents           companyDocument[] // attached documents
+  email        String?
+  contacts     contact[]
+  persons      companyPerson[]           // all history entries for this company
+  sites        site[]
+  brandOwnerDrugs companyDrug[] @relation("BrandOwnerCompany")
+  supplierDrugs   companyDrug[] @relation("SupplierCompany")
+  request126s     request126[]
+  documents       companyDocument[]       // attached documents
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -74,6 +73,7 @@ model person {
   email              String?
   nationalId         String?
   birthCity          String?
+  birthProvince      String?
   birthDate          DateTime?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
@@ -133,24 +133,25 @@ model lineDosage {
 }
 
 model line {
-  id          Int            @id @default(autoincrement())
-  site        site           @relation(fields: [siteId], references: [id])
-  siteId      Int
-  nameEn      String?
-  isActive    Boolean        @default(true)
-  capacity    Int?
-  OEB         Int?
-  nameFa      String?
-  isSterile   Boolean?
-  actual      Int?
-  startFrom   String?
-  opensDate   DateTime?
-  lineDosage  lineDosage[]
-  machines    machine[]
-  request126s request126[]
-  documents   lineDocument[] // attached documents
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
+  id  Int @id @default(autoincrement())
+  site  site @relation(fields: [siteId], references: [id])
+  siteId  Int
+  nameEn  String?
+  isActive  Boolean @default(true)
+  capacity  Int?
+  OEB Int?
+  nameFa  String?
+  isSterile  Boolean?
+  actual Int?
+  startFrom String?
+  opensDate DateTime?
+  lineDosage lineDosage[]
+  machines   machine[]
+  request126s     request126[]
+  documents       lineDocument[]          // attached documents
+  companyDrugs   companyDrug[] @relation("LineCompany")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model machineType {
@@ -255,29 +256,31 @@ model drug {
 }
 
 model companyDrug {
-  id           Int      @id @default(autoincrement())
-  drug         drug     @relation(fields: [drugId], references: [id])
-  drugId       Int
-  brandOwner   company  @relation("BrandOwnerCompany", fields: [brandOwnerId], references: [id])
-  brandOwnerId Int
-  IRC          String
-  GTIN         String?
-  brandNameEn  String
-  brandNameFa  String?
-  packageCount Float?
-  isBulk       Boolean?
-  isTemp       Boolean?
-  status       String
-  supplier     company  @relation("SupplierCompany", fields: [supplierId], references: [id])
-  supplierId   Int
-  producer     company? @relation("ProducerCompany", fields: [producerId], references: [id])
-  producerId   Int?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int       @id @default(autoincrement())
+  drug          drug    @relation(fields: [drugId], references: [id])
+  drugId        Int
+  brandOwner    company   @relation("BrandOwnerCompany", fields: [brandOwnerId], references: [id])
+  brandOwnerId  Int
+  IRC           String
+  GTIN          String?
+  brandNameEn   String
+  brandNameFa   String?
+  packageCount  Float?
+  isBulk        Boolean?
+  isTemp        Boolean?
+  status        String
+  supplier      company  @relation("SupplierCompany", fields: [supplierId], references: [id])
+  supplierId    Int
+  line          line?    @relation("LineCompany", fields: [lineId], references: [id])
+  lineId        Int?
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([drugId])
   @@index([brandOwnerId])
+  @@index([lineId])
+  @@index([supplierId])
 }
 
 model request126 {

@@ -44,6 +44,10 @@ export class CreatePersonDto {
   @IsOptional()
   birthCity?: string;
   
+  @IsString()
+  @IsOptional()
+  birthProvince?: string;
+  
   @IsDateString()
   @IsOptional()
   birthDate?: string;

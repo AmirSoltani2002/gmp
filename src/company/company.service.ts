@@ -157,7 +157,15 @@ export class CompanyService {
         include: {
           drug: true,
           supplier: true,
-          producer: true,
+          line: {
+            include: {
+              site: {
+                include: {
+                  company: true,
+                }
+              }
+            }
+          },
         }
       }}
     })
