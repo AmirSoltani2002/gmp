@@ -74,10 +74,4 @@ export class DocumentController {
   getDownloadUrl(@Param('id', ParseIntPipe) id: number) {
     return this.documentService.getDownloadUrl(id);
   }
-
-  @Delete(':id')
-  @ApiOperation({ summary: 'Delete document (System Admin only)' })
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.documentService.remove(id);
-  }
 }
