@@ -1,9 +1,10 @@
-import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { CreateDocumentAssociationDto } from './dto/create-document-association.dto';
 import { FindAllDocumentAssociationDto } from './dto/find-all-document-association.dto';
 import { AssociationType } from './entities/document-association.entity';
 import { DocumentService} from '../document/document.service';
+import { ROLES } from '../common/interface';
 
 @Injectable()
 export class DocumentAssociationService {
@@ -13,8 +14,13 @@ export class DocumentAssociationService {
   ) {}
 
   // Create association with one-to-one constraint handling
-  async createAssociation(type: AssociationType, data: CreateDocumentAssociationDto) {
+  async createAssociation(type: AssociationType, data: CreateDocumentAssociationDto, userId?: number, userRole?: string) {
     const { documentId, entityId } = data;
+    
+    // Check if QRP user owns the document
+    if (userRole === ROLES.QRP && userId) {
+      await this.validateDocumentOwnership(documentId, userId);
+    }
     
     try {
       switch (type) {
@@ -48,12 +54,17 @@ export class DocumentAssociationService {
   }
 
   // Find all associations with pagination
-  async findAllAssociations(type: AssociationType, query: FindAllDocumentAssociationDto) {
+  async findAllAssociations(type: AssociationType, query: FindAllDocumentAssociationDto, userId?: number, userRole?: string) {
     const { page = 1, pageSize = 20, documentId, entityId } = query;
     const skip = (page - 1) * pageSize;
 
     let where: any = {};
     if (documentId) where.documentId = documentId;
+
+    // Add document ownership filter for QRP users
+    if (userRole === ROLES.QRP && userId) {
+      where.document = { uploadedBy: userId };
+    }
 
     switch (type) {
       case 'site':
@@ -139,22 +150,41 @@ export class DocumentAssociationService {
   }
 
   // Remove association with error handling
-  async removeAssociation(type: AssociationType, id: number) {
+  async removeAssociation(type: AssociationType, id: number, userId?: number, userRole?: string) {
     try {
       let association;
       switch (type) {
         case 'site':
-          association = await this.db.siteDocument.findUniqueOrThrow({ where: { id } });
+          association = await this.db.siteDocument.findUniqueOrThrow({ 
+            where: { id },
+            include: { document: true }
+          });
           break;
         case 'line':
-          association = await this.db.lineDocument.findUniqueOrThrow({ where: { id } });
+          association = await this.db.lineDocument.findUniqueOrThrow({ 
+            where: { id },
+            include: { document: true }
+          });
           break;
         case 'company':
-          association = await this.db.companyDocument.findUniqueOrThrow({ where: { id } });
+          association = await this.db.companyDocument.findUniqueOrThrow({ 
+            where: { id },
+            include: { document: true }
+          });
           break;
         case 'request126':
-          association = await this.db.request126Document.findUniqueOrThrow({ where: { id } });
+          association = await this.db.request126Document.findUniqueOrThrow({ 
+            where: { id },
+            include: { document: true }
+          });
           break;
+      }
+
+      // Check if QRP user owns the document
+      if (userRole === ROLES.QRP && userId) {
+        if (association.document.uploadedBy !== userId) {
+          throw new ForbiddenException('You can only remove associations for your own documents');
+        }
       }
 
       const documentId = association.documentId;
@@ -174,7 +204,7 @@ export class DocumentAssociationService {
           break;
       }
 
-      await this.documentService.remove(documentId);
+      await this.documentService.remove(documentId, userId, userRole);
 
       return { message: 'Association and document removed successfully' };
     } catch (error) {
@@ -186,33 +216,49 @@ export class DocumentAssociationService {
   }
 
   // Get documents for a specific entity
-  async getDocumentsForEntity(type: AssociationType, entityId: number) {
+  async getDocumentsForEntity(type: AssociationType, entityId: number, userId?: number, userRole?: string) {
+    let where: any = {};
+    
+    // Add document ownership filter for QRP users
+    if (userRole === ROLES.QRP && userId) {
+      where.document = { uploadedBy: userId };
+    }
+
     switch (type) {
       case 'site':
+        where.siteId = entityId;
         return this.db.siteDocument.findMany({
-          where: { siteId: entityId },
+          where,
           include: { document: true }
         });
       case 'line':
+        where.lineId = entityId;
         return this.db.lineDocument.findMany({
-          where: { lineId: entityId },
+          where,
           include: { document: true }
         });
       case 'company':
+        where.companyId = entityId;
         return this.db.companyDocument.findMany({
-          where: { companyId: entityId },
+          where,
           include: { document: true }
         });
       case 'request126':
+        where.requestId = entityId;
         return this.db.request126Document.findMany({
-          where: { requestId: entityId },
+          where,
           include: { document: true }
         });
     }
   }
 
   // Get entities that have a specific document (one-to-one relationship)
-  async getEntityForDocument(type: AssociationType, documentId: number) {
+  async getEntityForDocument(type: AssociationType, documentId: number, userId?: number, userRole?: string) {
+    // Check if QRP user owns the document
+    if (userRole === ROLES.QRP && userId) {
+      await this.validateDocumentOwnership(documentId, userId);
+    }
+
     try {
       switch (type) {
         case 'site':
@@ -241,6 +287,22 @@ export class DocumentAssociationService {
         throw new NotFoundException(`No ${type} association found for document ${documentId}`);
       }
       throw error;
+    }
+  }
+
+  // Helper method to validate document ownership for QRP users
+  private async validateDocumentOwnership(documentId: number, userId: number) {
+    const document = await this.db.document.findUnique({
+      where: { id: documentId },
+      select: { uploadedBy: true }
+    });
+
+    if (!document) {
+      throw new NotFoundException(`Document ${documentId} not found`);
+    }
+
+    if (document.uploadedBy !== userId) {
+      throw new ForbiddenException('You can only access associations for your own documents');
     }
   }
 

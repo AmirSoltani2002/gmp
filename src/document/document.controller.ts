@@ -24,6 +24,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nes
   'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
   'POST': [ROLES.SYSTEM, ROLES.QRP],
   'DELETE': [ROLES.SYSTEM, ROLES.QRP],
+  'PATCH': [ROLES.SYSTEM, ROLES.QRP],
 })
 @ApiTags('document')
 @ApiBearerAuth('bearer-key')
@@ -60,20 +61,20 @@ export class DocumentController {
 
   @Get()
   @ApiOperation({ summary: 'Get all documents (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
-  findAll(@Query() query: FindAllDocumentDto) {
-    return this.documentService.findAll(query);
+  findAll(@Query() query: FindAllDocumentDto, @Request() req) {
+    return this.documentService.findAll(query, req.user?.id, req.user?.role);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get document by ID (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
-  findOne(@Param('id', ParseIntPipe) id: number) {
-    return this.documentService.findOne(id);
+  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.documentService.findOne(id, req.user?.id, req.user?.role);
   }
 
   @Get(':id/download')
   @ApiOperation({ summary: 'Get download URL for document (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
-  getDownloadUrl(@Param('id', ParseIntPipe) id: number) {
-    return this.documentService.getDownloadUrl(id);
+  getDownloadUrl(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    return this.documentService.getDownloadUrl(id, req.user?.id, req.user?.role);
   }
 
   @Patch(':id')
@@ -96,6 +97,6 @@ export class DocumentController {
     @Body() dto: any,
     @Request() req,
   ) {
-    return this.documentService.update(id, file, dto, req.user?.id);
+    return this.documentService.update(id, file, dto, req.user?.id, req.user?.role);
   }
 }

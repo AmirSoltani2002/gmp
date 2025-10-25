@@ -1,8 +1,9 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { DatabaseService } from '../database/database.service';
 import { DocumentS3Service } from '../s3/document.s3.service';
 import { UploadDocumentDto } from './dto/upload-document.dto';
 import { FindAllDocumentDto } from './dto/find-all-document.dto';
+import { ROLES } from '../common/interface';
 
 @Injectable()
 export class DocumentService {
@@ -44,7 +45,7 @@ export class DocumentService {
     });
   }
 
-  async findAll(query: FindAllDocumentDto) {
+  async findAll(query: FindAllDocumentDto, userId?: number, userRole?: string) {
     const { page = 1, pageSize = 20, q } = query;
     const skip = (page - 1) * pageSize;
 
@@ -55,6 +56,11 @@ export class DocumentService {
         { fileName: { contains: q, mode: 'insensitive' } },
         { description: { contains: q, mode: 'insensitive' } },
       ];
+    }
+
+    // If user is QRP, only show their own documents
+    if (userRole === ROLES.QRP && userId) {
+      where.uploadedBy = userId;
     }
 
     const [items, totalItems] = await this.db.$transaction([
@@ -78,21 +84,27 @@ export class DocumentService {
     };
   }
 
-  async findOne(id: number) {
+  async findOne(id: number, userId?: number, userRole?: string) {
     const document = await this.db.document.findUnique({ where: { id } });
     if (!document) {
       throw new NotFoundException('Document not found');
     }
+
+    // If user is QRP, only allow access to their own documents
+    if (userRole === ROLES.QRP && userId && document.uploadedBy !== userId) {
+      throw new ForbiddenException('You can only access your own documents');
+    }
+
     return document;
   }
 
-  async getDownloadUrl(id: number) {
-    const document = await this.findOne(id);
+  async getDownloadUrl(id: number, userId?: number, userRole?: string) {
+    const document = await this.findOne(id, userId, userRole);
     return this.s3Service.getPresignedUrl(this.BUCKET_NAME, document.fileKey);
   }
 
-  async remove(id: number) {
-    const document = await this.findOne(id);
+  async remove(id: number, userId?: number, userRole?: string) {
+    const document = await this.findOne(id, userId, userRole);
 
     // Delete from S3
     await this.s3Service.deleteFile(this.BUCKET_NAME, document.fileKey);
@@ -101,8 +113,8 @@ export class DocumentService {
     return this.db.document.delete({ where: { id } });
   }
 
-  async update(id: number, file: Express.Multer.File | undefined, dto: any, userId?: number) {
-    const existing = await this.findOne(id);
+  async update(id: number, file: Express.Multer.File | undefined, dto: any, userId?: number, userRole?: string) {
+    const existing = await this.findOne(id, userId, userRole);
 
     const data: any = {
       title: dto.title ?? existing.title,
