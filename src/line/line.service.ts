@@ -30,7 +30,11 @@ export class LineService {
   findOne(id: number) {
     return this.db.line.findUniqueOrThrow({
       where: {id},
-      include: {site: true}
+      include: {site: {
+        include: {
+          company: true
+        }
+      }}
     })
   }
 

@@ -20,11 +20,13 @@ export class SiteController {
     return this.siteService.create(createSiteDto);
   }
 
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.COMPANYOTHER])
   @Get()
   findAll() {
     return this.siteService.findAll();
   }
 
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.COMPANYOTHER])
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.siteService.findOne(+id);

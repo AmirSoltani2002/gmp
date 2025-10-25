@@ -31,7 +31,7 @@ export class LineController {
     return this.lineService.findAll();
   }
 
-  @Get(':id')
+  @Get('id/:id')
   @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.COMPANYOTHER])
   findOne(@Param('id') id: string) {
     return this.lineService.findOne(+id);
