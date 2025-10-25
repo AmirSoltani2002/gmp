@@ -26,13 +26,13 @@ export class LineController {
   }
 
   @Get()
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.COMPANYOTHER])
   findAll() {
     return this.lineService.findAll();
   }
 
   @Get(':id')
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.COMPANYOTHER])
   findOne(@Param('id') id: string) {
     return this.lineService.findOne(+id);
   }
