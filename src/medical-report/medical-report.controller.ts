@@ -16,16 +16,15 @@ import { MedicalReportService } from './medical-report.service';
 import { CreateMedicalReportDto } from './dto/create-medical-report.dto';
 import { UpdateMedicalReportDto } from './dto/update-medical-report.dto';
 import { FindAllMedicalReportDto } from './dto/find-all-medical-report.dto';
-import { MethodPermissions } from '../auth/roles.decorator';
+import { MethodPermissions, Public } from '../auth/roles.decorator';
 import { ROLES } from '../common/interface';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @MethodPermissions({
-  GET: [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
-  POST: [ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP],
-  PATCH: [ROLES.SYSTEM, ROLES.IFDAMANAGER],
-  DELETE: [ROLES.SYSTEM, ROLES.IFDAMANAGER],
+  GET: [ROLES.SYSTEM],
+  PATCH: [ROLES.SYSTEM],
+  DELETE: [ROLES.SYSTEM],
 })
 @ApiTags('medical-report')
 @ApiBearerAuth('bearer-key')
@@ -33,6 +32,7 @@ import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 export class MedicalReportController {
   constructor(private readonly service: MedicalReportService) {}
 
+  @Public()
   @Post()
   @ApiConsumes('multipart/form-data')
   @ApiBody({
