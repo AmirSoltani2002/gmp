@@ -39,7 +39,23 @@ export class CompanyDrugService {
   }
 
   async findOne(id: number) {
-    return this.db.companyDrug.findUnique({ where: { id } });
+    return this.db.companyDrug.findUnique({ 
+      where: { id },
+      include: {
+        brandOwner: true,
+        supplier: true,
+        drug: true,
+        line: {
+          include: {
+            site: {
+              include: {
+                company: true,
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   async update(id: number, updateCompanyDrugDto: UpdateCompanyDrugDto) {

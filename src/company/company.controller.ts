@@ -6,6 +6,7 @@ import { ROLES } from 'src/common/interface';
 import { Roles, RolesNot } from 'src/auth/roles.decorator';
 import { PersonService } from 'src/person/person.service';
 import { FindAllCompanyDto } from './dto/find-all-company.dto';
+import { AccessControlUtils } from 'src/common/access-control.utils';
 
 @Controller('company')
 export class CompanyController {
@@ -13,35 +14,15 @@ export class CompanyController {
               private readonly personService: PersonService,
   ) {}
 
-  private validateUserId(req: any): number {
-    const userId = req['user']?.id;
-    if (!userId) {
-      throw new BadRequestException('User ID not found in request');
-    }
-    
-    const userIdNumber = parseInt(userId, 10);
-    if (isNaN(userIdNumber)) {
-      throw new BadRequestException('Invalid user ID format');
-    }
-    
-    return userIdNumber;
-  }
-  private async isUserForThisCompany(req: any, companyId: number | string): Promise<boolean> {
-    const userId = this.validateUserId(req);
-    const user = await this.personService.findOne(userId);
-    const userCompanyId = user.companies?.[0]?.company?.id
-    return (user.role === ROLES.SYSTEM || userCompanyId.toString() === companyId.toString())
-    
-  }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Roles([ROLES.SYSTEM, ROLES.QRP])
   @Post()
   async create(@Body() createCompanyDto: CreateCompanyDto) {
     const company = await this.companyService.create(createCompanyDto);
     return company
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.CEO, ROLES.COMPANYOTHER])
   @Get()
   findAll(@Query() query: FindAllCompanyDto) {
     return this.companyService.findAll(query);
@@ -49,35 +30,38 @@ export class CompanyController {
 
   @Get('profile')
   findOneByUser(@Request() req) {
-    const userId = this.validateUserId(req);
+    const userId = AccessControlUtils.validateUserId(req);
     return this.companyService.findOneByUser(userId);
   }
 
   @Get('profile/contact')
   findOneContactMy(@Request() req) {
-    const userId = this.validateUserId(req);
+    const userId = AccessControlUtils.validateUserId(req);
     return this.companyService.findOneContact(userId);
   }
 
   @Get('profile/person')
   findOneUsersMy(@Request() req) {
-    const userId = this.validateUserId(req);
+    const userId = AccessControlUtils.validateUserId(req);
     return this.companyService.findOneUsers(userId);
   }
 
   @Get('profile/site')
   findOneSitesMy(@Request() req) {
-    const userId = this.validateUserId(req);
+    const userId = AccessControlUtils.validateUserId(req);
     return this.companyService.findOneSitesByUser(userId);
   }
 
   
   @Get('contact/:id')
   async findOneContact(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
       return this.companyService.findOneContact(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException(access.message || "Access denied")
     }
     
   }
@@ -86,10 +70,13 @@ export class CompanyController {
   
   @Get('person/:id')
   async findOneUsers(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
       return this.companyService.findOneUsers(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException(access.message || "Access denied")
     }
     
   }
@@ -98,22 +85,27 @@ export class CompanyController {
   
   @Get('site/:id')
   async findOneSites(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
       return this.companyService.findOneSites(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException(access.message || "Access denied")
     }
-    
   }
 
 
   
   @Get('machine/:id')
   async findOneMachines(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
       return this.companyService.findOneMachines(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException(access.message || "Access denied")
     }
     
   }
@@ -122,22 +114,27 @@ export class CompanyController {
   
   @Get('drug/:id')
   async findOneDrugs(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
       return this.companyService.findOneDrugs(+id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException(access.message || "Access denied")
     }
     
   }
 
 
   @Get('requests/:id')
-  @Get('request126s/:id')
   async findOneRequest126(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
       return this.companyService.findOneRequest126s(id);
     } else {
-      throw new UnauthorizedException("This is not your company!")
+      throw new BadRequestException(access.message || "Access denied")
     }
     
   }
@@ -145,11 +142,14 @@ export class CompanyController {
 
   @Get('id/:id')
   async findOne(@Param('id') id: string, @Request() req) {
-    if(await this.isUserForThisCompany(req, id)) {
-      return this.companyService.findOne(+id);
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
+      return this.companyService.findOne(+id); 
     } else {
-      throw new UnauthorizedException("This is not your company!")
-    } 
+      throw new BadRequestException(access.message || "Access denied")
+    }
   }
 
   @Get('eudra/:code')
@@ -164,10 +164,10 @@ export class CompanyController {
     }
   }
 
-  @RolesNot([ROLES.COMPANYOTHER, ROLES.IFDAUSER])
+  @Roles([ROLES.SYSTEM, ROLES.QRP])
   @Patch('profile')
   updateOneByUser(@Request() req, @Body() updateCompanyDto: UpdateCompanyDto) {
-    const userId = this.validateUserId(req);
+    const userId = AccessControlUtils.validateUserId(req);
     return this.companyService.updateOneByUser(userId, updateCompanyDto);
   }
 
@@ -177,7 +177,7 @@ export class CompanyController {
     return this.companyService.update(+id, updateCompanyDto);
   }
 
-  @Roles([ROLES.SYSTEM])
+  @Roles([ROLES.SYSTEM, ROLES.QRP])
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.companyService.remove(+id);

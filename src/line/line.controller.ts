@@ -5,60 +5,76 @@ import { UpdateLineDto } from './dto/update-line.dto';
 import { Roles } from 'src/auth/roles.decorator';
 import { ROLES } from 'src/common/interface';
 import { SiteService } from 'src/site/site.service';
+import { PersonService } from 'src/person/person.service';
+import { AccessControlUtils } from 'src/common/access-control.utils';
 
 @Controller('line')
 export class LineController {
   constructor(private readonly lineService: LineService, 
-              private readonly siteService: SiteService) {}
+              private readonly siteService: SiteService,
+              private readonly personService: PersonService) {}
+
   @Post()
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP])
+  @Roles([ROLES.SYSTEM, ROLES.QRP])
   async create(@Body() createLineDto: CreateLineDto, @Request() req) {
     const site = await this.siteService.findOne(+createLineDto.siteId);
-    const companyId = site.companyId;
-  
-    // get current company of the user
-    const currentCompany = req['user'].companies.find(c => !c.endedAt)?.companyId;
-  
-    if(req['user'].role !== ROLES.SYSTEM && companyId != currentCompany)
-          throw new BadRequestException('The QRP User cannot Edit this Site');
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessLine(user, site.companyId);
+    
+    if (!access.canAccess) {
+      throw new BadRequestException(access.message || 'Access denied');
+    }
   
     return this.lineService.create(createLineDto);
   }
 
   @Get()
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.CEO, ROLES.COMPANYOTHER])
   findAll() {
     return this.lineService.findAll();
   }
 
-  @Get(':id')
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
-  findOne(@Param('id') id: string) {
-    return this.lineService.findOne(+id);
+  @Get('id/:id')
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.CEO, ROLES.COMPANYOTHER])
+  async findOne(@Param('id') id: string, @Request() req) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const line = await this.lineService.findOne(+id);
+    const access = await AccessControlUtils.canAccessLine(user, line.site.companyId);
+    if (access.canAccess) {
+      return this.lineService.findOne(+id);
+    } else {
+      throw new BadRequestException(access.message || "Access denied");
+    }
   }
 
   @Patch(':id')
-  @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
+  @Roles([ROLES.SYSTEM, ROLES.QRP])
   async update(@Param('id') id: string, @Body() updateLineDto: UpdateLineDto, @Request() req) {
     const thisLine = await this.lineService.findOne(+id);
-  
-    const currentCompany = req['user'].companies.find(c => !c.endedAt)?.companyId;
-  
-    if(req['user'].role !== ROLES.SYSTEM && thisLine.site.companyId != currentCompany)
-      throw new BadRequestException('The QRP User cannot Edit this Site');
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessLine(user, thisLine.site.companyId);
+    
+    if (!access.canAccess) {
+      throw new BadRequestException(access.message || 'Access denied');
+    }
   
     return this.lineService.update(+id, updateLineDto);
   }
 
   @Delete(':id')
-  @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.IFDAUSER])
+  @Roles([ROLES.SYSTEM, ROLES.QRP])
   async remove(@Param('id') id: string, @Request() req) {
     const line = await this.lineService.findOne(+id);
-  
-    const currentCompany = req['user'].companies.find(c => !c.endedAt)?.companyId;
-  
-    if(line.site.companyId !== currentCompany && req['user'].role !== ROLES.SYSTEM)
-      throw new UnauthorizedException();
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessLine(user, line.site.companyId);
+    
+    if (!access.canAccess) {
+      throw new BadRequestException(access.message || 'Access denied');
+    }
   
     return this.lineService.remove(+id);
   }
