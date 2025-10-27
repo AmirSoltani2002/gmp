@@ -17,6 +17,7 @@ import { FindAllDocumentAssociationDto } from './dto/find-all-document-associati
 import { MethodPermissions } from '../auth/roles.decorator';
 import { ROLES } from '../common/interface';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { PersonService } from 'src/person/person.service';
 
 @MethodPermissions({
   'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
@@ -27,7 +28,10 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagg
 @ApiBearerAuth('bearer-key')
 @Controller('document-association')
 export class DocumentAssociationController {
-  constructor(private readonly service: DocumentAssociationService) {}
+  constructor(
+    private readonly service: DocumentAssociationService,
+    private readonly personService: PersonService
+  ) {}
 
   // Site Document Associations
   @Post('site')
@@ -41,30 +45,34 @@ export class DocumentAssociationController {
   @Get('site')
   @ApiOperation({ summary: 'Get all site-document associations' })
   @ApiResponse({ status: 200, description: 'List of associations with pagination' })
-  findAllSiteAssociations(@Query() query: FindAllDocumentAssociationDto, @Request() req) {
-    return this.service.findAllAssociations('site', query, req.user?.id, req.user?.role);
+  async findAllSiteAssociations(@Query() query: FindAllDocumentAssociationDto, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.findAllAssociations('site', query, person);
   }
 
   @Get('site/entity/:entityId/documents')
   @ApiOperation({ summary: 'Get all documents for a site' })
   @ApiResponse({ status: 200, description: 'List of documents for the site' })
-  getSiteDocuments(@Param('entityId', ParseIntPipe) entityId: number, @Request() req) {
-    return this.service.getDocumentsForEntity('site', entityId, req.user?.id, req.user?.role);
+  async getSiteDocuments(@Param('entityId', ParseIntPipe) entityId: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.getDocumentsForEntity('site', entityId, person);
   }
 
   @Get('site/document/:documentId/entity')
   @ApiOperation({ summary: 'Get site for a document (one-to-one)' })
   @ApiResponse({ status: 200, description: 'Site associated with the document' })
-  getSiteEntity(@Param('documentId', ParseIntPipe) documentId: number, @Request() req) {
-    return this.service.getEntityForDocument('site', documentId, req.user?.id, req.user?.role);
+  async getSiteEntity(@Param('documentId', ParseIntPipe) documentId: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.getEntityForDocument('site', documentId, person);
   }
 
   @Delete('site/:id')
   @ApiOperation({ summary: 'Remove site-document association' })
   @ApiResponse({ status: 204, description: 'Association removed successfully' })
   @ApiResponse({ status: 404, description: 'Association not found' })
-  removeSiteAssociation(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.service.removeAssociation('site', id, req.user?.id, req.user?.role);
+  async removeSiteAssociation(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.removeAssociation('site', id, person);
   }
 
   // Line Document Associations
@@ -79,31 +87,35 @@ export class DocumentAssociationController {
   @Get('line')
   @ApiOperation({ summary: 'Get all line-document associations' })
   @ApiResponse({ status: 200, description: 'List of associations with pagination' })
-  findAllLineAssociations(@Query() query: FindAllDocumentAssociationDto, @Request() req) {
-    return this.service.findAllAssociations('line', query, req.user?.id, req.user?.role);
+  async findAllLineAssociations(@Query() query: FindAllDocumentAssociationDto, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.findAllAssociations('line', query, person);
   }
 
   @Get('line/entity/:entityId/documents')
   @ApiOperation({ summary: 'Get all documents for a line' })
   @ApiResponse({ status: 200, description: 'List of documents for the line' })
-  getLineDocuments(@Param('entityId', ParseIntPipe) entityId: number, @Request() req) {
-    return this.service.getDocumentsForEntity('line', entityId, req.user?.id, req.user?.role);
+  async getLineDocuments(@Param('entityId', ParseIntPipe) entityId: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.getDocumentsForEntity('line', entityId, person);
   }
 
   @Get('line/document/:documentId/entity')
   @ApiOperation({ summary: 'Get line for a document (one-to-one)' })
   @ApiResponse({ status: 200, description: 'Line associated with the document' })
   @ApiResponse({ status: 404, description: 'No association found' })
-  getLineEntity(@Param('documentId', ParseIntPipe) documentId: number, @Request() req) {
-    return this.service.getEntityForDocument('line', documentId, req.user?.id, req.user?.role);
+  async getLineEntity(@Param('documentId', ParseIntPipe) documentId: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.getEntityForDocument('line', documentId, person);
   }
 
   @Delete('line/:id')
   @ApiOperation({ summary: 'Remove line-document association' })
   @ApiResponse({ status: 204, description: 'Association removed successfully' })
   @ApiResponse({ status: 404, description: 'Association not found' })
-  removeLineAssociation(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.service.removeAssociation('line', id, req.user?.id, req.user?.role);
+  async removeLineAssociation(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.removeAssociation('line', id, person);
   }
 
   // Company Document Associations
@@ -118,31 +130,35 @@ export class DocumentAssociationController {
   @Get('company')
   @ApiOperation({ summary: 'Get all company-document associations' })
   @ApiResponse({ status: 200, description: 'List of associations with pagination' })
-  findAllCompanyAssociations(@Query() query: FindAllDocumentAssociationDto, @Request() req) {
-    return this.service.findAllAssociations('company', query, req.user?.id, req.user?.role);
+  async findAllCompanyAssociations(@Query() query: FindAllDocumentAssociationDto, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.findAllAssociations('company', query, person);
   }
 
   @Get('company/entity/:entityId/documents')
   @ApiOperation({ summary: 'Get all documents for a company' })
   @ApiResponse({ status: 200, description: 'List of documents for the company' })
-  getCompanyDocuments(@Param('entityId', ParseIntPipe) entityId: number, @Request() req) {
-    return this.service.getDocumentsForEntity('company', entityId, req.user?.id, req.user?.role);
+  async getCompanyDocuments(@Param('entityId', ParseIntPipe) entityId: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.getDocumentsForEntity('company', entityId, person);
   }
 
   @Get('company/document/:documentId/entity')
   @ApiOperation({ summary: 'Get company for a document (one-to-one)' })
   @ApiResponse({ status: 200, description: 'Company associated with the document' })
   @ApiResponse({ status: 404, description: 'No association found' })
-  getCompanyEntity(@Param('documentId', ParseIntPipe) documentId: number, @Request() req) {
-    return this.service.getEntityForDocument('company', documentId, req.user?.id, req.user?.role);
+  async getCompanyEntity(@Param('documentId', ParseIntPipe) documentId: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.getEntityForDocument('company', documentId, person);
   }
 
   @Delete('company/:id')
   @ApiOperation({ summary: 'Remove company-document association' })
   @ApiResponse({ status: 204, description: 'Association removed successfully' })
   @ApiResponse({ status: 404, description: 'Association not found' })
-  removeCompanyAssociation(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.service.removeAssociation('company', id, req.user?.id, req.user?.role);
+  async removeCompanyAssociation(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.removeAssociation('company', id, person);
   }
 
   // Request126 Document Associations
@@ -157,30 +173,34 @@ export class DocumentAssociationController {
   @Get('request126')
   @ApiOperation({ summary: 'Get all request126-document associations' })
   @ApiResponse({ status: 200, description: 'List of associations with pagination' })
-  findAllRequest126Associations(@Query() query: FindAllDocumentAssociationDto, @Request() req) {
-    return this.service.findAllAssociations('request126', query, req.user?.id, req.user?.role);
+  async findAllRequest126Associations(@Query() query: FindAllDocumentAssociationDto, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.findAllAssociations('request126', query, person);
   }
 
   @Get('request126/entity/:entityId/documents')
   @ApiOperation({ summary: 'Get all documents for a request126' })
   @ApiResponse({ status: 200, description: 'List of documents for the request126' })
-  getRequest126Documents(@Param('entityId', ParseIntPipe) entityId: number, @Request() req) {
-    return this.service.getDocumentsForEntity('request126', entityId, req.user?.id, req.user?.role);
+  async getRequest126Documents(@Param('entityId', ParseIntPipe) entityId: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.getDocumentsForEntity('request126', entityId, person);
   }
 
   @Get('request126/document/:documentId/entity')
   @ApiOperation({ summary: 'Get request126 for a document (one-to-one)' })
   @ApiResponse({ status: 200, description: 'Request126 associated with the document' })
   @ApiResponse({ status: 404, description: 'No association found' })
-  getRequest126Entity(@Param('documentId', ParseIntPipe) documentId: number, @Request() req) {
-    return this.service.getEntityForDocument('request126', documentId, req.user?.id, req.user?.role);
+  async getRequest126Entity(@Param('documentId', ParseIntPipe) documentId: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.getEntityForDocument('request126', documentId, person);
   }
 
   @Delete('request126/:id')
   @ApiOperation({ summary: 'Remove request126-document association' })
   @ApiResponse({ status: 204, description: 'Association removed successfully' })
   @ApiResponse({ status: 404, description: 'Association not found' })
-  removeRequest126Association(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.service.removeAssociation('request126', id, req.user?.id, req.user?.role);
+  async removeRequest126Association(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.service.removeAssociation('request126', id, person);
   }
 }

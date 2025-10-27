@@ -52,6 +52,10 @@ export class DocumentController {
           type: 'string',
           example: 'Safety Protocol Document',
         },
+        description: {
+          type: 'string',
+          example: 'Description of the document',
+        },
       },
     },
   })
