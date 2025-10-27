@@ -334,6 +334,8 @@ model quickReport {
   // info
   phoneNumber String?
   email       String?
+  userAgent   String?
+  ip          String?
 
   // Optional - patient info
   patientName   String?

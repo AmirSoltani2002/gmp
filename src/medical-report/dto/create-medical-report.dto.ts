@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsEmail, IsEnum, IsDateString } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsEmail, IsEnum, IsDateString, IsIP, IsPhoneNumber } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum PatientGender {
@@ -25,13 +25,23 @@ export class CreateMedicalReportDto {
 
   @ApiPropertyOptional({ description: 'Phone number' })
   @IsOptional()
-  @IsString()
+  @IsPhoneNumber()
   phoneNumber?: string;
 
   @ApiPropertyOptional({ description: 'Email' })
   @IsOptional()
   @IsEmail()
   email?: string;
+
+  @ApiPropertyOptional({ description: 'Ip' })
+  @IsOptional()
+  @IsIP()
+  ip?: string;
+
+  @ApiPropertyOptional({ description: 'User Agent' })
+  @IsOptional()
+  @IsString()
+  userAgent?: string;
 
   @ApiPropertyOptional({ description: 'Patient name' })
   @IsOptional()

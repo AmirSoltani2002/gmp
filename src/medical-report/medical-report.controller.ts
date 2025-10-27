@@ -46,6 +46,8 @@ export class MedicalReportController {
         description: { type: 'string' },
         phoneNumber: { type: 'string' },
         email: { type: 'string', format: 'email' },
+        ip: {type: 'string', format: 'ip'},
+        userAgent: {type: 'string'},
         patientName: { type: 'string' },
         patientAge: { type: 'integer', format: 'int32' },
         patientGender: { type: 'string', enum: ['male', 'female'] },

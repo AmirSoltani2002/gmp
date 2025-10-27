@@ -12,6 +12,8 @@ export class MedicalReport {
   // info
   phoneNumber?: string;
   email?: string;
+  ip?: string;
+  userAgent?: string;
 
   // Optional - patient info
   patientName?: string;

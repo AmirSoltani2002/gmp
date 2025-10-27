@@ -43,6 +43,8 @@ export class MedicalReportService {
         description: dto.description,
         phoneNumber: dto.phoneNumber,
         email: dto.email,
+        ip: dto.ip,
+        userAgent: dto.userAgent,
         patientName: dto.patientName,
         patientAge: dto.patientAge,
         patientGender: dto.patientGender as any,
