@@ -3,11 +3,12 @@ import { DocumentController } from './document.controller';
 import { DocumentService } from './document.service';
 import { DocumentS3Service } from '../s3/document.s3.service';
 import { DatabaseModule } from '../database/database.module';
+import { PersonService } from 'src/person/person.service';
 
 @Module({
   imports: [DatabaseModule],
   controllers: [DocumentController],
-  providers: [DocumentService, DocumentS3Service],
+  providers: [DocumentService, DocumentS3Service, PersonService],
   exports: [DocumentService],
 })
 export class DocumentModule {}

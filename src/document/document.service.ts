@@ -3,6 +3,7 @@ import { DatabaseService } from '../database/database.service';
 import { DocumentS3Service } from '../s3/document.s3.service';
 import { UploadDocumentDto } from './dto/upload-document.dto';
 import { FindAllDocumentDto } from './dto/find-all-document.dto';
+import { DocumentPermission } from './document.permissions';
 import { ROLES } from '../common/interface';
 
 @Injectable()
@@ -17,7 +18,7 @@ export class DocumentService {
   async upload(
     file: Express.Multer.File,
     dto: UploadDocumentDto,
-    userId?: number,
+    companyId?: number,
   ) {
     // Generate unique file key
     const timestamp = Date.now();
@@ -40,12 +41,12 @@ export class DocumentService {
         fileKey,
         fileSize: file.size,
         mimeType: file.mimetype,
-        uploadedBy: userId,
+        companyId: companyId,
       },
     });
   }
 
-  async findAll(query: FindAllDocumentDto, userId?: number, userRole?: string) {
+  async findAll(query: FindAllDocumentDto, person: any) {
     const { page = 1, pageSize = 20, q } = query;
     const skip = (page - 1) * pageSize;
 
@@ -58,9 +59,12 @@ export class DocumentService {
       ];
     }
 
-    // If user is QRP, only show their own documents
-    if (userRole === ROLES.QRP && userId) {
-      where.uploadedBy = userId;
+    const userCompanyId = person.companies?.[0]?.company?.id;
+    const userRole = person.role as ROLES;
+
+    // Filter by company for roles that can't access other companies
+    if (userRole === ROLES.CEO || userRole === ROLES.COMPANYOTHER) {
+      where.companyId = userCompanyId;
     }
 
     const [items, totalItems] = await this.db.$transaction([
@@ -73,10 +77,18 @@ export class DocumentService {
       this.db.document.count({ where }),
     ]);
 
+    // For QRP, restrict documents from other companies to title only
+    const processedItems = items.map(item => {
+      if (userRole === ROLES.QRP && item.companyId !== userCompanyId) {
+        return { title: item.title };
+      }
+      return item;
+    });
+
     const totalPages = Math.ceil(totalItems / pageSize);
 
     return {
-      data: items,
+      data: processedItems,
       totalItems,
       totalPages,
       currentPage: page,
@@ -84,27 +96,35 @@ export class DocumentService {
     };
   }
 
-  async findOne(id: number, userId?: number, userRole?: string) {
+  async findOne(id: number, givenCompanyId?: number, person?: any) {
     const document = await this.db.document.findUnique({ where: { id } });
     if (!document) {
       throw new NotFoundException('Document not found');
     }
 
-    // If user is QRP, only allow access to their own documents
-    if (userRole === ROLES.QRP && userId && document.uploadedBy !== userId) {
-      throw new ForbiddenException('You can only access your own documents');
+    // Check permissions
+    const accessResult = await DocumentPermission.canAccessRestrictedEntity(person, document.companyId);
+    if (!accessResult.canAccess) {
+      throw new ForbiddenException(accessResult.message || 'Access denied');
+    }
+
+    if (accessResult.isRestricted) {
+      return { title: document.title };
     }
 
     return document;
   }
 
-  async getDownloadUrl(id: number, userId?: number, userRole?: string) {
-    const document = await this.findOne(id, userId, userRole);
+  async getDownloadUrl(id: number, companyId: number, person: any) {
+    const document = await this.findOne(id, companyId, person)
+    if (!('fileKey' in document)) throw new NotFoundException('Document not found or you dont have access.');
+
     return this.s3Service.getPresignedUrl(this.BUCKET_NAME, document.fileKey);
   }
 
-  async remove(id: number, userId?: number, userRole?: string) {
-    const document = await this.findOne(id, userId, userRole);
+  async remove(id: number, companyId?: number, person?: any) {
+    const document = await this.findOne(id, companyId, person)
+    if (!('fileKey' in document)) throw new NotFoundException('Document not found or you dont have access.');
 
     // Delete from S3
     await this.s3Service.deleteFile(this.BUCKET_NAME, document.fileKey);
@@ -113,8 +133,9 @@ export class DocumentService {
     return this.db.document.delete({ where: { id } });
   }
 
-  async update(id: number, file: Express.Multer.File | undefined, dto: any, userId?: number, userRole?: string) {
-    const existing = await this.findOne(id, userId, userRole);
+  async update(id: number, file: Express.Multer.File | undefined, dto: any, companyId: number, person: any) {
+    const existing = await this.findOne(id, companyId, person);
+    if (!('fileKey' in existing)) throw new NotFoundException('Document not found or you dont have access.');
 
     const data: any = {
       title: dto.title ?? existing.title,
@@ -141,7 +162,7 @@ export class DocumentService {
       data.fileKey = fileKey;
       data.fileSize = file.size;
       data.mimeType = file.mimetype;
-      data.uploadedBy = userId ?? existing.uploadedBy;
+      data.companyId = companyId ?? existing.companyId;
     }
 
     return this.db.document.update({ where: { id }, data });

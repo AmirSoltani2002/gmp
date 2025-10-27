@@ -19,6 +19,7 @@ import { FindAllDocumentDto } from './dto/find-all-document.dto';
 import { MethodPermissions } from '../auth/roles.decorator';
 import { ROLES } from '../common/interface';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { PersonService } from 'src/person/person.service';
 
 @MethodPermissions({
   'GET': [ROLES.SYSTEM, ROLES.QRP, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.COMPANYOTHER],
@@ -30,7 +31,10 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiConsumes, ApiBody } from '@nes
 @ApiBearerAuth('bearer-key')
 @Controller('document')
 export class DocumentController {
-  constructor(private readonly documentService: DocumentService) {}
+  constructor(
+    private readonly documentService: DocumentService,
+    private readonly personService: PersonService
+  ) {}
 
   @Post('upload')
   @UseInterceptors(FileInterceptor('file'))
@@ -51,30 +55,35 @@ export class DocumentController {
       },
     },
   })
-  upload(
+  async upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadDocumentDto,
     @Request() req,
   ) {
-    return this.documentService.upload(file, dto, req.user?.id);
+    const person = await this.personService.findOne(req.user?.id);
+    const personCompanyId = person.companies?.[0]?.company?.id;
+    return this.documentService.upload(file, dto, personCompanyId);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all documents (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
-  findAll(@Query() query: FindAllDocumentDto, @Request() req) {
-    return this.documentService.findAll(query, req.user?.id, req.user?.role);
+  async findAll(@Query() query: FindAllDocumentDto, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.documentService.findAll(query, person);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get document by ID (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
-  findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.documentService.findOne(id, req.user?.id, req.user?.role);
+  async findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.documentService.findOne(id, person?.companies?.[0]?.company?.id, person);
   }
 
   @Get(':id/download')
   @ApiOperation({ summary: 'Get download URL for document (System Admin, QRP, IFDAUser, IFDAManager, CompanyOther only)' })
-  getDownloadUrl(@Param('id', ParseIntPipe) id: number, @Request() req) {
-    return this.documentService.getDownloadUrl(id, req.user?.id, req.user?.role);
+  async getDownloadUrl(@Param('id', ParseIntPipe) id: number, @Request() req) {
+    const person = await this.personService.findOne(req.user?.id);
+    return this.documentService.getDownloadUrl(id, person?.companies?.[0]?.company?.id, person);
   }
 
   @Patch(':id')
@@ -91,12 +100,13 @@ export class DocumentController {
       },
     },
   })
-  update(
+  async update(
     @Param('id', ParseIntPipe) id: number,
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: any,
     @Request() req,
   ) {
-    return this.documentService.update(id, file, dto, req.user?.id, req.user?.role);
+    const person = await this.personService.findOne(req.user?.id);
+    return this.documentService.update(id, file, dto, person?.companies?.[0]?.company?.id, person);
   }
 }

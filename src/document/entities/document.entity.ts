@@ -6,7 +6,7 @@ export class Document {
   fileKey: string;
   fileSize: number;
   mimeType: string;
-  uploadedBy?: number;
+  companyId?: number;
   createdAt: Date;
   updatedAt: Date;
 }
