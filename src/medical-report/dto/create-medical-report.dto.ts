@@ -33,11 +33,6 @@ export class CreateMedicalReportDto {
   @IsEmail()
   email?: string;
 
-  @ApiPropertyOptional({ description: 'Ip' })
-  @IsOptional()
-  @IsIP()
-  ip?: string;
-
   @ApiPropertyOptional({ description: 'User Agent' })
   @IsOptional()
   @IsString()

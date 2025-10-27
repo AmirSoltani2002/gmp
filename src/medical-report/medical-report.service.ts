@@ -20,7 +20,7 @@ export class MedicalReportService {
   async create(
     file: Express.Multer.File | undefined,
     dto: CreateMedicalReportDto,
-    userId?: number,
+    ip: string,
   ) {
     let productImageKey: string | undefined = undefined;
 
@@ -43,7 +43,7 @@ export class MedicalReportService {
         description: dto.description,
         phoneNumber: dto.phoneNumber,
         email: dto.email,
-        ip: dto.ip,
+        ip: ip,
         userAgent: dto.userAgent,
         patientName: dto.patientName,
         patientAge: dto.patientAge,

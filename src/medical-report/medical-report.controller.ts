@@ -10,6 +10,7 @@ import {
   UploadedFile,
   Query,
   Request,
+  Ip,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MedicalReportService } from './medical-report.service';
@@ -46,7 +47,6 @@ export class MedicalReportController {
         description: { type: 'string' },
         phoneNumber: { type: 'string' },
         email: { type: 'string', format: 'email' },
-        ip: {type: 'string', format: 'ip'},
         userAgent: {type: 'string'},
         patientName: { type: 'string' },
         patientAge: { type: 'integer', format: 'int32' },
@@ -69,9 +69,8 @@ export class MedicalReportController {
     },
   })
   @UseInterceptors(FileInterceptor('file'))
-  async create(@UploadedFile() file: Express.Multer.File, @Body() dto: CreateMedicalReportDto, @Request() req) {
-    const userId = req?.user?.id;
-    return this.service.create(file, dto, userId);
+  async create(@UploadedFile() file: Express.Multer.File, @Body() dto: CreateMedicalReportDto, @Ip() ip: string) {
+    return this.service.create(file, dto, ip);
   }
 
   @Get()
