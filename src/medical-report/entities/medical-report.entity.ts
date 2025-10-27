@@ -28,6 +28,7 @@ export class MedicalReport {
   uid?: string;
   productionDate?: Date;
   expirationDate?: Date;
+  consumptionDate?: Date;
 
   // Optional - where and how purchased/stored
   purchaseLocation?: string;

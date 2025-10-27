@@ -55,6 +55,7 @@ export class MedicalReportService {
         uid: dto.uid,
         productionDate: dto.productionDate ? new Date(dto.productionDate) : undefined,
         expirationDate: dto.expirationDate ? new Date(dto.expirationDate) : undefined,
+        consumptionDate: dto.consumptionDate ? new Date(dto.consumptionDate) : undefined,
         purchaseLocation: dto.purchaseLocation,
         storageDescription: dto.storageDescription,
         defectTypes: dto.defectTypes,

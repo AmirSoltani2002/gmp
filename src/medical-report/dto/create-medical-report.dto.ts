@@ -92,6 +92,11 @@ export class CreateMedicalReportDto {
   @IsOptional()
   @IsDateString()
   expirationDate?: string;
+  
+  @ApiPropertyOptional({ description: 'Consumption date (ISO string)' })
+  @IsOptional()
+  @IsDateString()
+  consumptionDate?: string;
 
   @ApiPropertyOptional({ description: 'Purchase location' })
   @IsOptional()
@@ -103,7 +108,9 @@ export class CreateMedicalReportDto {
   @IsString()
   storageDescription?: string;
 
-  @ApiPropertyOptional({ description: 'Defect types (as comma-separated string)' })
+  @ApiPropertyOptional({
+    description: 'Defect types (as comma-separated string)',
+  })
   @IsOptional()
   @IsString()
   defectTypes?: string;

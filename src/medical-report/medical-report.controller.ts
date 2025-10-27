@@ -58,6 +58,7 @@ export class MedicalReportController {
         uid: { type: 'string' },
         productionDate: { type: 'string', format: 'date-time' },
         expirationDate: { type: 'string', format: 'date-time' },
+        consumptionDate: { type: 'string', format: 'date-time' },
         purchaseLocation: { type: 'string' },
         storageDescription: { type: 'string' },
         defectTypes: { type: 'string' },
