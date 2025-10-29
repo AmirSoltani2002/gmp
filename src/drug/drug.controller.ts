@@ -28,7 +28,7 @@ export class DrugController {
     return this.drugService.create(createDrugDto);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.COMPANYOTHER, ROLES.CEO])
   @Get()
   findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -40,7 +40,7 @@ export class DrugController {
     return this.drugService.findAll(page, limit, sortBy, sortOrder, q);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER, ROLES.QRP, ROLES.COMPANYOTHER, ROLES.CEO])
   @Get(':id')
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.drugService.findOne(id);
