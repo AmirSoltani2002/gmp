@@ -1,5 +1,5 @@
 import { IsOptional, IsInt, Min, Max } from 'class-validator';
-import { Transform } from 'class-transformer';
+import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class FindAllDocumentAssociationDto {
@@ -11,7 +11,7 @@ export class FindAllDocumentAssociationDto {
   @IsOptional()
   @IsInt({ message: 'Document ID must be an integer' })
   @Min(1, { message: 'Document ID must be greater than 0' })
-  @Transform(({ value }) => parseInt(value))
+  @Type(() => Number)
   documentId?: number;
 
   @ApiPropertyOptional({
@@ -22,7 +22,7 @@ export class FindAllDocumentAssociationDto {
   @IsOptional()
   @IsInt({ message: 'Entity ID must be an integer' })
   @Min(1, { message: 'Entity ID must be greater than 0' })
-  @Transform(({ value }) => parseInt(value))
+  @Type(() => Number)
   entityId?: number;
 
   @ApiPropertyOptional({
@@ -33,7 +33,7 @@ export class FindAllDocumentAssociationDto {
   @IsOptional()
   @IsInt({ message: 'Page must be an integer' })
   @Min(1, { message: 'Page must be greater than 0' })
-  @Transform(({ value }) => parseInt(value))
+  @Type(() => Number)
   page?: number;
 
   @ApiPropertyOptional({
@@ -46,6 +46,6 @@ export class FindAllDocumentAssociationDto {
   @IsInt({ message: 'Page size must be an integer' })
   @Min(1, { message: 'Page size must be greater than 0' })
   @Max(100, { message: 'Page size cannot exceed 100' })
-  @Transform(({ value }) => parseInt(value))
+  @Type(() => Number)
   pageSize?: number;
 }
