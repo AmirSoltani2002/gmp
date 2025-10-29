@@ -193,7 +193,7 @@ export class DocumentAssociationService {
           break;
         case 'request126':
           result.data = result.data.map(item => ({
-            request126: item.request126,
+            request: item.request,
             document: {
               title: item.document.title
             }
@@ -308,26 +308,30 @@ export class DocumentAssociationService {
         where.siteId = entityId;
         result = await this.db.siteDocument.findMany({
           where,
-          include: { document: true }
+          include: { document: true, site: true }
         });
+        break;
       case 'line':
         where.lineId = entityId;
         result = await this.db.lineDocument.findMany({
           where,
-          include: { document: true }
+          include: { document: true, line: true }
         });
+        break;
       case 'company':
         where.companyId = entityId;
         result = await this.db.companyDocument.findMany({
           where,
-          include: { document: true }
+          include: { document: true, company: true }
         });
+        break;
       case 'request126':
         where.requestId = entityId;
         result = await this.db.request126Document.findMany({
           where,
-          include: { document: true }
+          include: { document: true, request: true }
         });
+        break;
     }
 
     let accessResult: any;
@@ -368,7 +372,7 @@ export class DocumentAssociationService {
           break;
         case 'request126':
           result = result.map(item => ({
-            request126: item.request126,
+            request: item.request,
             document: {
               title: item.document.title
             }
