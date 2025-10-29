@@ -60,11 +60,6 @@ export class DocumentAssociationService {
     let result: any;
     let where: any = {};
    
-    const accessResult = await DocumentPermission.canAccessRestrictedEntity(person, companyId);
-    if (!accessResult.canAccess) {
-      throw new ForbiddenException(accessResult.message || 'Access denied');
-    }
-    
     switch (type) {
       case 'site':
         if (entityId) where.siteId = entityId;
@@ -159,6 +154,17 @@ export class DocumentAssociationService {
         };
         break;
     }
+
+    let accessResult: any;
+    if (result.data.length > 0) {
+      accessResult = await DocumentPermission.canAccessRestrictedEntity(person, result.data[0].documentId);
+      if (!accessResult.canAccess) {
+        throw new ForbiddenException(accessResult.message || 'Access denied');
+      }
+    } else {
+      return result;
+    }
+
     if (accessResult.isRestricted) {
       switch (type) {
         case 'site':
@@ -199,10 +205,6 @@ export class DocumentAssociationService {
   }
 
   async findOneAssociation(type: AssociationType, id: number, person: any) {
-    const accessResult = await DocumentPermission.canAccessRestrictedEntity(person, id);
-    if (!accessResult.canAccess) {
-      throw new ForbiddenException(accessResult.message || 'Access denied');
-    }
 
     let result: any;
 
@@ -231,6 +233,17 @@ export class DocumentAssociationService {
           include: { document: true }
         });
         break;
+    }
+
+    let accessResult: any;
+    if (result.documentId) {
+      accessResult = await DocumentPermission.canAccessRestrictedEntity(person, result.documentId);
+      if (!accessResult.canAccess) {
+        throw new ForbiddenException(accessResult.message || 'Access denied');
+      }
+    } else {
+      // If not found or similar
+      return result;
     }
 
     if (accessResult.isRestricted) {
@@ -288,11 +301,8 @@ export class DocumentAssociationService {
   // Get documents for a specific entity
   async getDocumentsForEntity(type: AssociationType, entityId: number, person: any) {
     let where: any = {};
-    const accessResult = await DocumentPermission.canAccessRestrictedEntity(person, entityId);
-    if (!accessResult.canAccess) {
-      throw new ForbiddenException(accessResult.message || 'Access denied');
-    }
     let result: any;
+
     switch (type) {
       case 'site':
         where.siteId = entityId;
@@ -319,6 +329,17 @@ export class DocumentAssociationService {
           include: { document: true }
         });
     }
+
+    let accessResult: any;
+    if (result.length > 0) {
+      accessResult = await DocumentPermission.canAccessRestrictedEntity(person, result[0].documentId);
+      if (!accessResult.canAccess) {
+        throw new ForbiddenException(accessResult.message || 'Access denied');
+      }
+    } else {
+      return result;
+    }
+    
     if (accessResult.isRestricted) {
       switch (type) {
         case 'site':
@@ -360,10 +381,6 @@ export class DocumentAssociationService {
 
   // Get entities that have a specific document (one-to-one relationship)
   async getEntityForDocument(type: AssociationType, documentId: number, person: any) {
-    const accessResult = await DocumentPermission.canAccessRestrictedEntity(person, documentId);
-    if (!accessResult.canAccess) {
-      throw new ForbiddenException(accessResult.message || 'Access denied');
-    }
 
     try {
       switch (type) {
@@ -391,6 +408,9 @@ export class DocumentAssociationService {
     } catch (error) {
       if (error.code === 'P2025') {
         throw new NotFoundException(`No ${type} association found for document ${documentId}`);
+      }
+      if (error.code === 'P2003') {
+        throw new NotFoundException(`Document ${documentId} not found`);
       }
       throw error;
     }
