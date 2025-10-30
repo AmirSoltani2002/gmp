@@ -157,7 +157,7 @@ export class DocumentAssociationService {
 
     let accessResult: any;
     if (result.data.length > 0) {
-      accessResult = await DocumentPermission.canAccessRestrictedEntity(person, result.data[0].documentId);
+      accessResult = await DocumentPermission.canAccessRestrictedEntity(person, result.data[0].document.companyId);
       if (!accessResult.canAccess) {
         throw new ForbiddenException(accessResult.message || 'Access denied');
       }
@@ -336,7 +336,7 @@ export class DocumentAssociationService {
 
     let accessResult: any;
     if (result.length > 0) {
-      accessResult = await DocumentPermission.canAccessRestrictedEntity(person, result[0].documentId);
+      accessResult = await DocumentPermission.canAccessRestrictedEntity(person, result[0].document.companyId);
       if (!accessResult.canAccess) {
         throw new ForbiddenException(accessResult.message || 'Access denied');
       }
