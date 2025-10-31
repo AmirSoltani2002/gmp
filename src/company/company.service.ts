@@ -65,15 +65,20 @@ export class CompanyService {
     })
   }
 
-  findOneUsers(id: number) {
-    return this.db.company.findUniqueOrThrow({
+  async findOneUsers(id: number) {
+    const rawData = await this.db.company.findUniqueOrThrow({
       where: {id},
       include: {persons: {
         include: {
           person: true
         }
       }}
-    })
+    });
+    // remove passwordHash from person
+    rawData.persons.forEach(person => {
+      delete (person.person as any).passwordHash;
+    });
+    return rawData;
   }
 
   findOneSites(id: number) {
