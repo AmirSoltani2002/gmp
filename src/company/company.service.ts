@@ -75,9 +75,13 @@ export class CompanyService {
       }}
     });
     // remove passwordHash from person
-    const data = rawData.persons.map(person => {
-      const {passwordHash, ...rest} = person.person as any;
-      return rest;
+    const data = rawData.persons.map(companyPerson => {
+      const person = companyPerson.person;
+      const {passwordHash, ...rest} = person;
+      return {
+        ...companyPerson,
+        person: rest
+      }
     });
     const {persons, ...rest} = rawData;
     return {
