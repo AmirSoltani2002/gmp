@@ -35,6 +35,11 @@ export class CreateCompanyDto {
     @IsString()
     @IsOptional()
     registerationNumber?: string;
+
+    @IsString()
+    @IsOptional()
+    contact?: string;
+    
     @IsEmail()
     @IsOptional()
     email?: string;

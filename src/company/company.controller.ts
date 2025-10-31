@@ -34,12 +34,6 @@ export class CompanyController {
     return this.companyService.findOneByUser(userId);
   }
 
-  @Get('profile/contact')
-  findOneContactMy(@Request() req) {
-    const userId = AccessControlUtils.validateUserId(req);
-    return this.companyService.findOneContact(userId);
-  }
-
   @Get('profile/person')
   findOneUsersMy(@Request() req) {
     const userId = AccessControlUtils.validateUserId(req);
@@ -53,20 +47,6 @@ export class CompanyController {
   }
 
   
-  @Get('contact/:id')
-  async findOneContact(@Param('id') id: string, @Request() req) {
-    const userId = AccessControlUtils.validateUserId(req);
-    const user = await this.personService.findOne(userId);
-    const access = await AccessControlUtils.canAccessCompany(user, id);
-    if (access.canAccess) {
-      return this.companyService.findOneContact(+id);
-    } else {
-      throw new BadRequestException(access.message || "Access denied")
-    }
-    
-  }
-
-
   
   @Get('person/:id')
   async findOneUsers(@Param('id') id: string, @Request() req) {

@@ -171,13 +171,6 @@ export class CompanyService {
     })
   }
 
-  findOneContact(id: number) {
-    return this.db.company.findUniqueOrThrow({
-      where: {id},
-      include: {contacts: true}
-    })
-  }
-
   findOneByUser(id: number) {
     return this.db.person.findUniqueOrThrow({
       where: {id},

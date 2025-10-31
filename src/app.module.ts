@@ -2,7 +2,6 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { CompanyModule } from './company/company.module';
-import { ContactModule } from './contact/contact.module';
 import { PersonModule } from './person/person.module';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
@@ -27,7 +26,6 @@ import { MedicalReportModule } from './medical-report/medical-report.module';
 @Module({
   imports: [
     CompanyModule,
-    ContactModule,
     PersonModule,
     DatabaseModule,
     AuthModule,
