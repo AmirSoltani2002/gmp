@@ -75,10 +75,15 @@ export class CompanyService {
       }}
     });
     // remove passwordHash from person
-    rawData.persons.forEach(person => {
-      delete (person.person as any).passwordHash;
+    const data = rawData.persons.map(person => {
+      const {passwordHash, ...rest} = person.person as any;
+      return rest;
     });
-    return rawData;
+    const {persons, ...rest} = rawData;
+    return {
+      ...rest,
+      persons: data
+    }
   }
 
   findOneSites(id: number) {
