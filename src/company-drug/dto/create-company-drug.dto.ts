@@ -51,10 +51,6 @@ export class CreateCompanyDrugDto {
     @IsInt()
     @IsNotEmpty()
     supplierId: number;
-  
-    @IsInt()
-    @IsOptional()
-    producerId?: number;
 
     @IsInt()
     @IsOptional()
