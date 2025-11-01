@@ -151,15 +151,29 @@ export class CompanyController {
     return this.companyService.updateOneByUser(userId, updateCompanyDto);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER])
+  @Roles([ROLES.SYSTEM, ROLES.QRP])
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
-    return this.companyService.update(+id, updateCompanyDto);
+  async update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto, @Request() req) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
+      return this.companyService.update(+id, updateCompanyDto);
+    } else {
+      throw new BadRequestException(access.message || "Access denied")
+    }
   }
 
   @Roles([ROLES.SYSTEM, ROLES.QRP])
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.companyService.remove(+id);
+  async remove(@Param('id') id: string, @Request() req) {
+    const userId = AccessControlUtils.validateUserId(req);
+    const user = await this.personService.findOne(userId);
+    const access = await AccessControlUtils.canAccessCompany(user, id);
+    if (access.canAccess) {
+      return this.companyService.remove(+id);
+    } else {
+      throw new BadRequestException(access.message || "Access denied")
+    }
   }
 }
