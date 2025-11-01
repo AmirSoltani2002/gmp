@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { CreateCompanyDrugDto } from './dto/create-company-drug.dto';
 import { UpdateCompanyDrugDto } from './dto/update-company-drug.dto';
 import { DatabaseService } from 'src/database/database.service';
@@ -9,7 +9,18 @@ export class CompanyDrugService {
   constructor(private readonly db: DatabaseService) {}
 
   async create(createCompanyDrugDto: CreateCompanyDrugDto) {
-    return this.db.companyDrug.create({ data: createCompanyDrugDto });
+    try {
+      return await this.db.companyDrug.create({ data: createCompanyDrugDto });
+    } catch (error) {
+      if (error.code === 'P2002') {
+        const target = error.meta?.target;
+        const fields = Array.isArray(target) ? target.join(', ') : target || 'unknown';
+        throw new ConflictException(
+          `A company drug with the same ${fields} already exists. Please check IRC, brandOwnerId, drugId, or other unique fields.`
+        );
+      }
+      throw error;
+    }
   }
 
   async findAll(

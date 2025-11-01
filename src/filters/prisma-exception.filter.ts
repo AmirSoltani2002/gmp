@@ -22,7 +22,9 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       // Handle known request errors
       switch (exception.code) {
         case 'P2002':
-          httpException = new ConflictException('Unique Constraint Violation ' + exception.meta?.target);
+          const target = exception.meta?.target;
+          const constraintFields = Array.isArray(target) ? target.join(', ') : target || 'unknown field';
+          httpException = new ConflictException(`Unique Constraint Violation on field(s): ${constraintFields}`);
           break;
         case 'P2025':
           httpException = new NotFoundException('Record not found ' + exception.meta?.target);
