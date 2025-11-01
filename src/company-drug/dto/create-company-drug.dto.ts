@@ -55,4 +55,8 @@ export class CreateCompanyDrugDto {
     @IsInt()
     @IsOptional()
     producerId?: number;
+
+    @IsInt()
+    @IsOptional()
+    lineId?: number;
   }
