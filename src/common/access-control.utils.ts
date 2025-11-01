@@ -176,4 +176,45 @@ export class AccessControlUtils {
 
     return { canAccess: false, message: "Access denied. Insufficient permissions." };
   }
+
+  /**
+   * Checks if user can access a company drug based on their role and company association
+   * For company drugs: SYSTEM, IFDAUSER, IFDAMANAGER have full access
+   * QRP, CEO, COMPANYOTHER can only access their own company's drugs
+   */
+  static async canAccessCompanyDrug(
+    user: any, 
+    brandOwnerId: number | string,
+    isEditOperation: boolean = false
+  ): Promise<AccessControlResult> {
+    const userCompanyId = user.companies?.[0]?.company?.id;
+    const userRole = user.role as ROLES;
+
+    // SYSTEM, IFDAUSER, IFDAMANAGER can access any company drug
+    if (userRole === ROLES.SYSTEM || userRole === ROLES.IFDAUSER || userRole === ROLES.IFDAMANAGER) {
+      return { canAccess: true };
+    }
+
+    // For edit operations, QRP is not allowed
+    if (isEditOperation && userRole === ROLES.QRP) {
+      return { 
+        canAccess: false, 
+        message: 'Access denied. QRP users cannot edit company drugs.' 
+      };
+    }
+
+    // QRP, CEO, and COMPANYOTHER can only access company drugs from their own company (read-only)
+    if (userRole === ROLES.QRP || userRole === ROLES.CEO || userRole === ROLES.COMPANYOTHER) {
+      if (userCompanyId && userCompanyId.toString() === brandOwnerId.toString()) {
+        return { canAccess: true };
+      } else {
+        return { 
+          canAccess: false, 
+          message: `Access denied. ${userRole === ROLES.QRP ? 'QRP' : userRole === ROLES.CEO ? 'CEO' : 'Company Other'} users can only access company drugs from their own company.` 
+        };
+      }
+    }
+
+    return { canAccess: false, message: "Access denied. Insufficient permissions." };
+  }
 }

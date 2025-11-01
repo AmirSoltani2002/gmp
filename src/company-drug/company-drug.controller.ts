@@ -25,12 +25,12 @@ export class CompanyDrugController {
   constructor(private readonly companyDrugService: CompanyDrugService,
               private readonly personService: PersonService) {}
 
-  @Roles([ROLES.SYSTEM, ROLES.QRP])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Post()
   async create(@Body() createCompanyDrugDto: CreateCompanyDrugDto, @Request() req) {
     const userId = AccessControlUtils.validateUserId(req);
     const user = await this.personService.findOne(userId);
-    const access = await AccessControlUtils.canAccessCompany(user, createCompanyDrugDto.brandOwnerId);
+    const access = await AccessControlUtils.canAccessCompanyDrug(user, createCompanyDrugDto.brandOwnerId, true);
     
     if (!access.canAccess) {
       throw new BadRequestException(access.message || 'Access denied');
@@ -66,7 +66,7 @@ export class CompanyDrugController {
       throw new BadRequestException('Company drug not found');
     }
     
-    const access = await AccessControlUtils.canAccessCompany(user, companyDrug.brandOwnerId);
+    const access = await AccessControlUtils.canAccessCompanyDrug(user, companyDrug.brandOwnerId, false);
     
     if (!access.canAccess) {
       throw new BadRequestException(access.message || 'Access denied');
@@ -75,7 +75,7 @@ export class CompanyDrugController {
     return companyDrug;
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.QRP])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Patch(':id')
   async update(
     @Param('id', ParseIntPipe) id: number,
@@ -90,7 +90,7 @@ export class CompanyDrugController {
       throw new BadRequestException('Company drug not found');
     }
     
-    const access = await AccessControlUtils.canAccessCompany(user, companyDrug.brandOwnerId);
+    const access = await AccessControlUtils.canAccessCompanyDrug(user, companyDrug.brandOwnerId, true);
     
     if (!access.canAccess) {
       throw new BadRequestException(access.message || 'Access denied');
@@ -99,7 +99,7 @@ export class CompanyDrugController {
     return this.companyDrugService.update(id, updateCompanyDrugDto);
   }
 
-  @Roles([ROLES.SYSTEM, ROLES.QRP])
+  @Roles([ROLES.SYSTEM, ROLES.IFDAUSER, ROLES.IFDAMANAGER])
   @Delete(':id')
   async remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
     const userId = AccessControlUtils.validateUserId(req);
@@ -110,7 +110,7 @@ export class CompanyDrugController {
       throw new BadRequestException('Company drug not found');
     }
     
-    const access = await AccessControlUtils.canAccessCompany(user, companyDrug.brandOwnerId);
+    const access = await AccessControlUtils.canAccessCompanyDrug(user, companyDrug.brandOwnerId, true);
     
     if (!access.canAccess) {
       throw new BadRequestException(access.message || 'Access denied');
