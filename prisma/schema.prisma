@@ -9,30 +9,30 @@ datasource db {
 }
 
 model company {
-  id                 Int               @id @default(autoincrement())
-  nameFa             String
-  nationalId         String
-  description        String?
-  img                String?
-  nameEn             String?
-  country            String?
-  mainAddress        String?
-  website            String?
-  province           String?
-  postalCode         String?
-  city               String?
-  registrationDate   DateTime?
-  registrationNumber String?
-  email              String?
-  createdAt          DateTime          @default(now())
-  updatedAt          DateTime          @updatedAt
-  contact            String?
-  documents          companyDocument[]
-  brandOwnerDrugs    companyDrug[]     @relation("BrandOwnerCompany")
-  supplierDrugs      companyDrug[]     @relation("SupplierCompany")
-  persons            companyPerson[]
-  request126s        request126[]
-  sites              site[]
+  id                  Int               @id @default(autoincrement())
+  nameFa              String
+  nationalId          String
+  description         String?
+  img                 String?
+  nameEn              String?
+  country             String?
+  mainAddress         String?
+  website             String?
+  province            String?
+  postalCode          String?
+  city                String?
+  registrationDate    DateTime?
+  registrationNumber  String?
+  email               String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  contact             String?
+  documents           companyDocument[]
+  brandOwnerDrugs     companyDrug[]     @relation("BrandOwnerCompany")
+  supplierDrugs       companyDrug[]     @relation("SupplierCompany")
+  persons             companyPerson[]
+  request126s         request126[]
+  sites               site[]
 }
 
 model companyPerson {
