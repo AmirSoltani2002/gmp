@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "debian-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
@@ -15,44 +9,43 @@ datasource db {
 }
 
 model company {
-  id                  Int               @id @default(autoincrement())
-  nameFa              String
-  nationalId          String
-  description         String?
-  img                 String?
-  nameEn              String?
-  country             String?
-  mainAddress         String?
-  website             String?
-  province            String?
-  postalCode          String?
-  city                String?
-  registerationDate   DateTime?
-  registerationNumber String?
-  email        String?
-  contact      String?
-  persons      companyPerson[]           // all history entries for this company
-  sites        site[]
-  brandOwnerDrugs companyDrug[] @relation("BrandOwnerCompany")
-  supplierDrugs   companyDrug[] @relation("SupplierCompany")
-  request126s     request126[]
-  documents       companyDocument[]       // attached documents
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 Int               @id @default(autoincrement())
+  nameFa             String
+  nationalId         String
+  description        String?
+  img                String?
+  nameEn             String?
+  country            String?
+  mainAddress        String?
+  website            String?
+  province           String?
+  postalCode         String?
+  city               String?
+  registrationDate   DateTime?
+  registrationNumber String?
+  email              String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  contact            String?
+  documents          companyDocument[]
+  brandOwnerDrugs    companyDrug[]     @relation("BrandOwnerCompany")
+  supplierDrugs      companyDrug[]     @relation("SupplierCompany")
+  persons            companyPerson[]
+  request126s        request126[]
+  sites              site[]
 }
 
 model companyPerson {
   id            Int       @id @default(autoincrement())
-  person        person    @relation(fields: [personId], references: [id])
   personId      Int
-  company       company   @relation(fields: [companyId], references: [id])
   companyId     Int
   licenseNumber String?
   licenseDate   String?
-  endedAt       DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+  endedAt       DateTime?
+  company       company   @relation(fields: [companyId], references: [id])
+  person        person    @relation(fields: [personId], references: [id])
 
   @@index([personId])
   @@index([companyId])
@@ -65,25 +58,22 @@ model person {
   name               String?
   familyName         String?
   nezamCode          String?
-  companies          companyPerson[] // history entries
-  request126Acted    request126History[] @relation("Actor")
-  request126Assigned request126History[] @relation("Assignee")
   role               String
   phone              String?
   email              String?
   nationalId         String?
   birthCity          String?
-  birthProvince      String?
-  birthDate          DateTime?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  birthDate          DateTime?
+  birthProvince      String?
+  companies          companyPerson[]
+  request126Acted    request126History[] @relation("Actor")
+  request126Assigned request126History[] @relation("Assignee")
 }
 
 model site {
   id        Int            @id @default(autoincrement())
-  company   company        @relation(fields: [companyId], references: [id])
-  lines     line[]
-  machines  machine[]
   companyId Int
   country   String?
   city      String?
@@ -94,9 +84,12 @@ model site {
   GLN       String?
   province  String?
   name      String?
-  documents siteDocument[] // attached documents
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+  lines     line[]
+  machines  machine[]
+  company   company        @relation(fields: [companyId], references: [id])
+  documents siteDocument[]
 }
 
 model dosage {
@@ -105,41 +98,41 @@ model dosage {
   category   String?
   labelEn    String?
   labelFa    String?
-  lineDosage lineDosage[]
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
+  lineDosage lineDosage[]
 }
 
 model lineDosage {
   id        Int      @id @default(autoincrement())
-  dosage    dosage   @relation(fields: [dosageId], references: [id])
   dosageId  Int
-  line      line     @relation(fields: [lineId], references: [id])
   lineId    Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  dosage    dosage   @relation(fields: [dosageId], references: [id])
+  line      line     @relation(fields: [lineId], references: [id])
 }
 
 model line {
-  id  Int @id @default(autoincrement())
-  site  site @relation(fields: [siteId], references: [id])
-  siteId  Int
-  nameEn  String?
-  isActive  Boolean @default(true)
-  capacity  Int?
-  OEB Int?
-  nameFa  String?
-  isSterile  Boolean?
-  actual Int?
-  startFrom String?
-  opensDate DateTime?
-  lineDosage lineDosage[]
-  machines   machine[]
-  request126s     request126[]
-  documents       lineDocument[]          // attached documents
-  companyDrugs   companyDrug[] @relation("LineCompany")
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           Int            @id @default(autoincrement())
+  siteId       Int
+  nameEn       String?
+  isActive     Boolean        @default(true)
+  capacity     Int?
+  OEB          Int?
+  nameFa       String?
+  isSterile    Boolean?
+  actual       Int?
+  startFrom    String?
+  opensDate    DateTime?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  companyDrugs companyDrug[]  @relation("LineCompany")
+  site         site           @relation(fields: [siteId], references: [id])
+  documents    lineDocument[]
+  lineDosage   lineDosage[]
+  machines     machine[]
+  request126s  request126[]
 }
 
 model machineType {
@@ -153,11 +146,8 @@ model machineType {
 model machine {
   id               Int         @id @default(autoincrement())
   siteId           Int?
-  site             site?       @relation(fields: [siteId], references: [id])
   lineId           Int?
-  line             line?       @relation(fields: [lineId], references: [id])
   machineTypeId    Int
-  machineType      machineType @relation(fields: [machineTypeId], references: [id])
   country          String?
   brand            String?
   model            String?
@@ -171,25 +161,26 @@ model machine {
   PQ               Boolean?
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
+  line             line?       @relation(fields: [lineId], references: [id])
+  machineType      machineType @relation(fields: [machineTypeId], references: [id])
+  site             site?       @relation(fields: [siteId], references: [id])
 }
 
 model document {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String? // Description of the document
-  fileName    String // Original file name
-  fileKey     String   @unique // S3 object key/path
-  fileSize    Int // File size in bytes
-  mimeType    String // MIME type (e.g., 'application/pdf', 'image/jpeg')
-  companyId   Int? // Company that own this file
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations to bridge tables
-  siteDocument       siteDocument?
-  lineDocument       lineDocument?
+  id                 Int                 @id @default(autoincrement())
+  title              String
+  description        String?
+  fileName           String
+  fileKey            String              @unique
+  fileSize           Int
+  mimeType           String
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  companyId          Int?
   companyDocument    companyDocument?
+  lineDocument       lineDocument?
   request126Document request126Document?
+  siteDocument       siteDocument?
 
   @@index([fileKey])
   @@index([companyId])
@@ -198,34 +189,34 @@ model document {
 
 model siteDocument {
   id         Int      @id @default(autoincrement())
-  site       site     @relation(fields: [siteId], references: [id])
   siteId     Int
-  document   document @relation(fields: [documentId], references: [id])
   documentId Int      @unique
+  document   document @relation(fields: [documentId], references: [id])
+  site       site     @relation(fields: [siteId], references: [id])
 }
 
 model lineDocument {
   id         Int      @id @default(autoincrement())
-  line       line     @relation(fields: [lineId], references: [id])
   lineId     Int
-  document   document @relation(fields: [documentId], references: [id])
   documentId Int      @unique
+  document   document @relation(fields: [documentId], references: [id])
+  line       line     @relation(fields: [lineId], references: [id])
 }
 
 model companyDocument {
   id         Int      @id @default(autoincrement())
-  company    company  @relation(fields: [companyId], references: [id])
   companyId  Int
-  document   document @relation(fields: [documentId], references: [id])
   documentId Int      @unique
+  company    company  @relation(fields: [companyId], references: [id])
+  document   document @relation(fields: [documentId], references: [id])
 }
 
 model request126Document {
   id         Int        @id @default(autoincrement())
-  request    request126 @relation(fields: [requestId], references: [id])
   requestId  Int
-  document   document   @relation(fields: [documentId], references: [id])
   documentId Int        @unique
+  document   document   @relation(fields: [documentId], references: [id])
+  request    request126 @relation(fields: [requestId], references: [id])
 
   @@index([requestId])
   @@index([documentId])
@@ -237,33 +228,32 @@ model drug {
   genericName   String
   genericCode   String
   ATC           String?
-  companyDrugs  companyDrug[]
-  request126s   request126[]
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
+  companyDrugs  companyDrug[]
+  request126s   request126[]
 }
 
 model companyDrug {
-  id            Int       @id @default(autoincrement())
-  drug          drug    @relation(fields: [drugId], references: [id])
-  drugId        Int
-  brandOwner    company   @relation("BrandOwnerCompany", fields: [brandOwnerId], references: [id])
-  brandOwnerId  Int
-  IRC           String
-  GTIN          String?
-  brandNameEn   String
-  brandNameFa   String?
-  packageCount  Float?
-  isBulk        Boolean?
-  isTemp        Boolean?
-  status        String
-  supplier      company  @relation("SupplierCompany", fields: [supplierId], references: [id])
-  supplierId    Int
-  line          line?    @relation("LineCompany", fields: [lineId], references: [id])
-  lineId        Int?
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id           Int      @id @default(autoincrement())
+  drugId       Int
+  brandOwnerId Int
+  IRC          String
+  brandNameEn  String
+  brandNameFa  String?
+  packageCount Float?
+  isBulk       Boolean?
+  isTemp       Boolean?
+  status       String
+  supplierId   Int
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  GTIN         String?
+  lineId       Int?
+  brandOwner   company  @relation("BrandOwnerCompany", fields: [brandOwnerId], references: [id])
+  drug         drug     @relation(fields: [drugId], references: [id])
+  line         line?    @relation("LineCompany", fields: [lineId], references: [id])
+  supplier     company  @relation("SupplierCompany", fields: [supplierId], references: [id])
 
   @@index([drugId])
   @@index([brandOwnerId])
@@ -272,86 +262,69 @@ model companyDrug {
 }
 
 model request126 {
-  id               Int     @id @default(autoincrement())
+  id               Int                  @id @default(autoincrement())
   type             String
   companyId        Int
-  company          company @relation(fields: [companyId], references: [id])
   lineId           Int
-  line             line    @relation(fields: [lineId], references: [id])
   drugId           Int
-  drug             drug    @relation(fields: [drugId], references: [id])
   drugOEB_declared Int
   drugOEL_declared Float
-
-  history   request126History[]
-  documents request126Document[] // attached documents
-
-  closedAt  DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  closedAt         DateTime?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  company          company              @relation(fields: [companyId], references: [id])
+  drug             drug                 @relation(fields: [drugId], references: [id])
+  line             line                 @relation(fields: [lineId], references: [id])
+  documents        request126Document[]
+  history          request126History[]
 }
 
 model request126History {
   id           Int        @id @default(autoincrement())
   requestId    Int
-  request      request126 @relation(fields: [requestId], references: [id])
   actorId      Int
-  actor        person     @relation("Actor", fields: [actorId], references: [id])
   action       String
   fromStatus   String
   toStatus     String
   toAssigneeId Int
-  toAssignee   person     @relation("Assignee", fields: [toAssigneeId], references: [id])
   message      String?
   endedAt      DateTime?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+  actor        person     @relation("Actor", fields: [actorId], references: [id])
+  request      request126 @relation(fields: [requestId], references: [id])
+  toAssignee   person     @relation("Assignee", fields: [toAssigneeId], references: [id])
 }
 
 model quickReport {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Required
-  drugBrandName String
-  companyName   String
-  batchNumber   String
-  description   String
-
-  // info
-  phoneNumber String?
-  email       String?
-  userAgent   String?
-  ip          String?
-
-  // Optional - patient info
-  patientName   String?
-  patientAge    Int?
-  patientGender PatientGender?
-
-  // Optional - drug extended info
-  drugGenericName String?
-  dosageForm      String?
-  dosageStrength  String?
-  gtin            String?
-  uid             String?
-  productionDate  DateTime?
-  expirationDate  DateTime?
-  consumptionDate DateTime?
-
-  // Optional - where and how purchased/stored
+  id                 String         @id @default(uuid())
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
+  drugBrandName      String
+  companyName        String
+  batchNumber        String
+  description        String
+  phoneNumber        String?
+  email              String?
+  patientName        String?
+  patientAge         Int?
+  patientGender      PatientGender?
+  drugGenericName    String?
+  dosageForm         String?
+  dosageStrength     String?
+  gtin               String?
+  uid                String?
+  productionDate     DateTime?
+  expirationDate     DateTime?
   purchaseLocation   String?
   storageDescription String?
-
-  // Optional - defect types (checkbox multi-select)
-  defectTypes   String? 
-  defectDetails String?
-
-  // Optional image file uploaded to S3
-  productImageKey String? @unique
-
-  metadata Json?
+  defectTypes        String?
+  defectDetails      String?
+  productImageKey    String?        @unique
+  metadata           Json?
+  ip                 String?
+  userAgent          String?
+  consumptionDate    DateTime?
 
   @@map("quick_reports")
 }

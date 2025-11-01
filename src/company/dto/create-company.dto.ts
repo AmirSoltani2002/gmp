@@ -31,10 +31,10 @@ export class CreateCompanyDto {
     city?: string;
     @IsDateString()
     @IsOptional()
-    registerationDate?: string;
+    registrationDate?: string;
     @IsString()
     @IsOptional()
-    registerationNumber?: string;
+    registrationNumber?: string;
 
     @IsString()
     @IsOptional()
