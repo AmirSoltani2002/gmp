@@ -208,7 +208,9 @@ export class Request126SwaggerConfig {
         description: `
           Create a new Request126 entry.
           
-          **Required fields:** type, companyId, lineId, drugId, drugOEB_declared, drugOEL_declared
+          **Required fields:** type, companyId, lineId, drugId
+          
+          **Optional fields:** drugOEB_declared, drugOEL_declared, closedAt
           
           **Permissions:** ${[ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.QRP].join(', ')}
         `,
@@ -218,7 +220,7 @@ export class Request126SwaggerConfig {
         description: 'Request126 data',
         schema: {
           type: 'object',
-          required: ['type', 'companyId', 'lineId', 'drugId', 'drugOEB_declared', 'drugOEL_declared'],
+          required: ['type', 'companyId', 'lineId', 'drugId'],
           properties: {
             type: {
               type: 'string',
@@ -246,15 +248,17 @@ export class Request126SwaggerConfig {
             },
             drugOEB_declared: {
               type: 'number',
-              description: 'Declared OEB value',
+              description: 'Declared OEB value (optional)',
               example: 4,
-              minimum: 0
+              minimum: 0,
+              nullable: true
             },
             drugOEL_declared: {
               type: 'number',
-              description: 'Declared OEL value',
+              description: 'Declared OEL value (optional)',
               example: 0.5,
-              minimum: 0
+              minimum: 0,
+              nullable: true
             },
             closedAt: {
               type: 'string',

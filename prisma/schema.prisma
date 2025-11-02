@@ -267,8 +267,8 @@ model request126 {
   companyId        Int
   lineId           Int
   drugId           Int
-  drugOEB_declared Int
-  drugOEL_declared Float
+  drugOEB_declared Int?
+  drugOEL_declared Float?
   closedAt         DateTime?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt

@@ -46,27 +46,31 @@ export class CreateRequest126Dto {
   @Transform(({ value }) => parseInt(value))
   drugId: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Declared Occupational Exposure Band (OEB) value',
     example: 1,
     minimum: 0,
     type: Number,
+    nullable: true,
   })
+  @IsOptional()
   @IsInt({ message: 'Drug OEB must be an integer' })
   @Min(0, { message: 'Drug OEB must be non-negative' })
   @Transform(({ value }) => parseInt(value))
-  drugOEB_declared: number;
+  drugOEB_declared?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Declared Occupational Exposure Limit (OEL) value in μg/m³',
     example: 0.5,
     minimum: 0,
     type: Number,
+    nullable: true,
   })
+  @IsOptional()
   @IsNumber({}, { message: 'Drug OEL must be a number' })
   @Min(0, { message: 'Drug OEL must be non-negative' })
   @Transform(({ value }) => parseFloat(value))
-  drugOEL_declared: number;
+  drugOEL_declared?: number;
 
   @ApiPropertyOptional({
     description: 'Date when the request was closed (ISO 8601 format)',
