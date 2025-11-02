@@ -110,7 +110,7 @@ export class CompanyController {
   async findOneRequest126(@Param('id') id: string, @Request() req) {
     const userId = AccessControlUtils.validateUserId(req);
     const user = await this.personService.findOne(userId);
-    const access = await AccessControlUtils.canAccessCompany(user, id);
+    const access = await AccessControlUtils.canAccessRequest(user, id);
     if (access.canAccess) {
       return this.companyService.findOneRequest126s(id);
     } else {

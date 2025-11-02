@@ -53,7 +53,7 @@ export class AccessControlUtils {
 
     return { canAccess: false, message: "Access denied. Insufficient permissions." };
   }
-
+  
   /**
    * Checks if user can access a site based on their role and company association
    */
@@ -107,6 +107,32 @@ export class AccessControlUtils {
         return { 
           canAccess: false, 
           message: `Access denied. ${userRole === ROLES.CEO ? 'CEO' : 'Company Other'} users can only view lines from their own company.` 
+        };
+      }
+    }
+
+    return { canAccess: false, message: "Access denied. Insufficient permissions." };
+  }
+  static async canAccessRequest(
+    user: any, 
+    companyId: number | string
+  ): Promise<AccessControlResult> {
+    const userCompanyId = user.companies?.[0]?.company?.id;
+    const userRole = user.role as ROLES;
+
+    // SYSTEM and QRP can access any company
+    if (userRole === ROLES.SYSTEM || userRole === ROLES.IFDAUSER || userRole === ROLES.IFDAMANAGER || userRole === ROLES.QRP) {
+      return { canAccess: true };
+    }
+
+    // CEO and COMPANYOTHER can only access their own company
+    if (userRole === ROLES.CEO || userRole === ROLES.COMPANYOTHER) {
+      if (userCompanyId.toString() === companyId.toString()) {
+        return { canAccess: true };
+      } else {
+        return { 
+          canAccess: false, 
+          message: `Access denied. ${userRole === ROLES.CEO ? 'CEO' : 'Company Other'} users can only view their own company information.` 
         };
       }
     }
