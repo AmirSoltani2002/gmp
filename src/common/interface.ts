@@ -1,8 +1,8 @@
 export enum ROLES {
     SYSTEM = 'system',
     QRP = 'QRP',
-    IFDAUSER = 'idfaUser',
+    IFDAUSER = 'ifdaUser',
     CEO = 'ceo',
-    IFDAMANAGER = 'idfaManager',
+    IFDAMANAGER = 'ifdaManager',
     COMPANYOTHER = 'companyOther'
 }
