@@ -153,7 +153,15 @@ export class CompanyService {
       },
       include: {
         company: true,
-        line: true,
+        line: {
+          include: {
+            site: {
+              include: {
+                company: true
+              }
+            }
+          }
+        },
         drug: true,
         history: true,
       },
