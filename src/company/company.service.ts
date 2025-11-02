@@ -146,23 +146,18 @@ export class CompanyService {
     }
   }
   findOneRequest126s(id: string) {
-    if(id === 'all') {
-      return this.db.request126.findMany({
-        include: {
-          company: true,
-          line: true,
-          drug: true,
-          history: true,
-        },
-      })
-    } else {
-      const idNumber = Number(id)
-      if(isNaN(idNumber)){return null}
-      return this.db.company.findUniqueOrThrow({
-        where: {id: idNumber},
-        include: {request126s: true}
-      })
-    }
+    const companyId = id === 'all' ? undefined : Number(id);
+    return this.db.request126.findMany({
+      where: {
+        companyId: companyId ?? undefined,
+      },
+      include: {
+        company: true,
+        line: true,
+        drug: true,
+        history: true,
+      },
+    })
   }
   findOneDrugs(id: number) {
     return this.db.company.findUniqueOrThrow({
