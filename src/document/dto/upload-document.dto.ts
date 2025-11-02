@@ -1,7 +1,17 @@
-import { IsString, MinLength, IsOptional } from 'class-validator';
+import { IsString, MinLength, IsOptional, Min, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
 
 export class UploadDocumentDto {
+  @ApiProperty({
+    description: 'Company ID',
+    example: 1,
+  })
+  @IsNumber()
+  @Min(1)
+  @Transform(({ value }) => parseInt(value))
+  companyId: number;
+
   @ApiProperty({
     description: 'Document title',
     example: 'Safety Protocol Document',

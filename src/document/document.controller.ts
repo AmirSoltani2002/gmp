@@ -62,11 +62,8 @@ export class DocumentController {
   async upload(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: UploadDocumentDto,
-    @Request() req,
   ) {
-    const person = await this.personService.findOne(req.user?.id);
-    const personCompanyId = person.companies?.[0]?.company?.id;
-    return this.documentService.upload(file, dto, personCompanyId);
+    return this.documentService.upload(file, dto);
   }
 
   @Get()

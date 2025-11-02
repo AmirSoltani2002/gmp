@@ -18,7 +18,6 @@ export class DocumentService {
   async upload(
     file: Express.Multer.File,
     dto: UploadDocumentDto,
-    companyId?: number,
   ) {
     // Generate unique file key
     const timestamp = Date.now();
@@ -41,7 +40,7 @@ export class DocumentService {
         fileKey,
         fileSize: file.size,
         mimeType: file.mimetype,
-        companyId: companyId,
+        companyId: dto.companyId,
       },
     });
   }
