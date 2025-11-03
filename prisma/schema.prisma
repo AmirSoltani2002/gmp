@@ -80,7 +80,6 @@ model site {
   address   String?
   gpsLat    Float?
   gpsLng    Float?
-  isPrimary Boolean        @default(false)
   GLN       String?
   province  String?
   name      String?

@@ -18,9 +18,7 @@ export class CreateSiteDto {
     @IsNumber()
     @IsOptional()
     gpsLng?: number;
-    @IsBoolean()
-    @IsOptional()
-    isPrimary?: boolean;
+    
     @IsString()
     @IsOptional()
     GLN?: string;
