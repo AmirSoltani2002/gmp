@@ -282,9 +282,9 @@ model request126History {
   id           Int        @id @default(autoincrement())
   requestId    Int
   actorId      Int
-  action       String
-  fromStatus   String
-  toStatus     String
+  action       Request126Action
+  fromStatus   Request126Status
+  toStatus     Request126Status
   toAssigneeId Int
   message      String?
   endedAt      DateTime?
@@ -331,4 +331,22 @@ model quickReport {
 enum PatientGender {
   male
   female
+}
+
+enum Request126Status {
+  nowhere
+  draft
+  pendingAssign
+  pendingReview
+  approved
+  rejected
+}
+
+enum Request126Action {
+  create
+  submit
+  assign
+  review
+  approve
+  reject
 }

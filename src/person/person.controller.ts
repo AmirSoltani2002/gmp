@@ -6,6 +6,7 @@ import { Public, Roles, RolesNot } from 'src/auth/roles.decorator';
 import { ROLES } from 'src/common/interface';
 import { PasswordService } from 'src/auth/config';
 import { AccessControlUtils } from 'src/common/access-control.utils';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @Controller('person')
 export class PersonController {
@@ -33,6 +34,14 @@ export class PersonController {
     const userId = AccessControlUtils.validateUserId(req);
     const {passwordHash, ...rest} = await this.personService.findOne(userId);
     return rest;
+  }
+
+  @Get('ifda-users')
+  @Roles([ROLES.SYSTEM, ROLES.IFDAMANAGER, ROLES.IFDAUSER])
+  @ApiOperation({ summary: 'Get all IFDA users (IFDAUSER and IFDAMANAGER roles)' })
+  @ApiResponse({ status: 200, description: 'List of IFDA users' })
+  getIfdaUsers() {
+    return this.personService.getIfdaUsers();
   }
 
   @Get('username/:username')

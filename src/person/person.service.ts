@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreatePersonDto } from './dto/create-person.dto';
 import { UpdatePersonDto } from './dto/update-person.dto';
 import { DatabaseService } from 'src/database/database.service';
+import { ROLES } from 'src/common/interface';
 
 @Injectable()
 export class PersonService {
@@ -76,5 +77,29 @@ export class PersonService {
 
   removeByUsername(username: string) {
     return this.db.person.delete({ where: { username } });
+  }
+
+  async getIfdaUsers() {
+    const users = await this.db.person.findMany({
+      where: {
+        role: {
+          in: [ROLES.IFDAUSER, ROLES.IFDAMANAGER],
+        },
+      },
+      select: {
+        id: true,
+        username: true,
+        name: true,
+        familyName: true,
+        email: true,
+        role: true,
+        phone: true,
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    });
+
+    return users;
   }
 }
