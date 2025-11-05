@@ -3,15 +3,17 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 
 export class CreateRequest126Dto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Type of the request (e.g., safety-assessment, quality-check)',
     example: 'safety-assessment',
     minLength: 1,
     type: String,
+    nullable: true,
   })
+  @IsOptional()
   @IsString()
   @MinLength(1, { message: 'Type cannot be empty' })
-  type: string;
+  type?: string;
 
   @ApiProperty({
     description: 'ID of the company making the request',
@@ -24,27 +26,31 @@ export class CreateRequest126Dto {
   @Transform(({ value }) => parseInt(value))
   companyId: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'ID of the production line',
     example: 1,
     minimum: 1,
     type: Number,
+    nullable: true,
   })
+  @IsOptional()
   @IsInt({ message: 'Line ID must be an integer' })
   @Min(1, { message: 'Line ID must be positive' })
   @Transform(({ value }) => parseInt(value))
-  lineId: number;
+  lineId?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'ID of the drug being processed',
     example: 1,
     minimum: 1,
     type: Number,
+    nullable: true,
   })
+  @IsOptional()
   @IsInt({ message: 'Drug ID must be an integer' })
   @Min(1, { message: 'Drug ID must be positive' })
   @Transform(({ value }) => parseInt(value))
-  drugId: number;
+  drugId?: number;
 
   @ApiPropertyOptional({
     description: 'Declared Occupational Exposure Band (OEB) value',

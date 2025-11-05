@@ -262,18 +262,18 @@ model companyDrug {
 
 model request126 {
   id               Int                  @id @default(autoincrement())
-  type             String
+  type             String?
   companyId        Int
-  lineId           Int
-  drugId           Int
+  lineId           Int?
+  drugId           Int?
   drugOEB_declared Int?
   drugOEL_declared Float?
   closedAt         DateTime?
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
   company          company              @relation(fields: [companyId], references: [id])
-  drug             drug                 @relation(fields: [drugId], references: [id])
-  line             line                 @relation(fields: [lineId], references: [id])
+  drug             drug?                @relation(fields: [drugId], references: [id])
+  line             line?                @relation(fields: [lineId], references: [id])
   documents        request126Document[]
   history          request126History[]
 }

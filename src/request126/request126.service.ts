@@ -11,14 +11,10 @@ export class Request126Service {
   constructor(private readonly db: DatabaseService) {}
 
   async createWithHistory(createRequest126Dto: CreateRequest126Dto, actor: any) {
-    const data = {
-      ...createRequest126Dto,
-      closedAt: createRequest126Dto.closedAt ? new Date(createRequest126Dto.closedAt) : null,
-    };
-
+    
     return this.db.$transaction(async (tx) => {
       const request = await tx.request126.create({
-        data,
+        data: createRequest126Dto,
         include: {
           company: true,
           line: true,
@@ -65,13 +61,8 @@ export class Request126Service {
   }
 
   async create(createRequest126Dto: CreateRequest126Dto) {
-    const data = {
-      ...createRequest126Dto,
-      closedAt: createRequest126Dto.closedAt ? new Date(createRequest126Dto.closedAt) : null,
-    };
-
     return this.db.request126.create({
-      data,
+      data: createRequest126Dto,
       include: { 
         company: true, 
         line: true, 
