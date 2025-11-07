@@ -33,6 +33,7 @@ model company {
   persons             companyPerson[]
   request126s         request126[]
   sites               site[]
+  inspections         Inspection[]
 }
 
 model companyPerson {
@@ -52,8 +53,8 @@ model companyPerson {
 }
 
 model person {
-  id                 Int                 @id @default(autoincrement())
-  username           String              @unique
+  id                 Int                   @id @default(autoincrement())
+  username           String                @unique
   passwordHash       String
   name               String?
   familyName         String?
@@ -63,13 +64,14 @@ model person {
   email              String?
   nationalId         String?
   birthCity          String?
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
   birthDate          DateTime?
   birthProvince      String?
   companies          companyPerson[]
-  request126Acted    request126History[] @relation("Actor")
-  request126Assigned request126History[] @relation("Assignee")
+  request126Acted    request126History[]   @relation("Actor")
+  request126Assigned request126History[]   @relation("Assignee")
+  inspections        InspectionInspector[]
 }
 
 model site {
@@ -132,6 +134,7 @@ model line {
   lineDosage   lineDosage[]
   machines     machine[]
   request126s  request126[]
+  inspections  Inspection[]
 }
 
 model machineType {
@@ -350,3 +353,64 @@ enum Request126Action {
   approve
   reject
 }
+
+model Inspection {
+  id         Int                   @id @default(autoincrement())
+  companyId  Int
+  lineId     Int
+  critical   Int                   @default(0)
+  major      Int                   @default(0)
+  minor      Int                   @default(0)
+  createdAt  DateTime              @default(now())
+  updatedAt  DateTime              @updatedAt
+  company    company               @relation(fields: [companyId], references: [id])
+  line       line                  @relation(fields: [lineId], references: [id])
+  inspectors InspectionInspector[]
+
+  @@index([companyId])
+  @@index([lineId])
+}
+
+model InspectionInspector {
+  id           Int        @id @default(autoincrement())
+  inspectionId Int
+  personId     Int
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  inspection   Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  person       person     @relation(fields: [personId], references: [id])
+
+  @@index([inspectionId])
+  @@index([personId])
+}
+
+model pqrSection {
+  id      Int       @id @default(autoincrement())
+  titleFa String
+  order   Int
+  items   pqrItem[]
+}
+
+model pqrItem {
+  id         Int         @id @default(autoincrement())
+  sectionId  Int
+  questionFa String
+  order      Int
+  section    pqrSection  @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  answers    pqrAnswer[]
+
+  @@index([sectionId])
+}
+
+model pqrAnswer {
+  id      Int      @id @default(autoincrement())
+  formId  Int
+  itemId  Int
+  answer  String?
+  details String?
+  item    pqrItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@index([formId])
+  @@index([itemId])
+}
+
