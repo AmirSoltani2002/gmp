@@ -11,7 +11,13 @@ export class Request126HistoryService {
   async create(data: CreateRequest126HistoryDto) {
     return this.db.request126History.create({
       data: {
-        ...data,
+        requestId: data.requestId,
+        actorId: data.actorId,
+        action: data.action as any,
+        fromStatus: data.fromStatus as any,
+        toStatus: data.toStatus as any,
+        toAssigneeId: data.toAssigneeId,
+        message: data.message,
         endedAt: data.endedAt ? new Date(data.endedAt) : null,
       },
       include: { 
@@ -134,12 +140,16 @@ export class Request126HistoryService {
   }
 
   async update(id: number, data: UpdateRequest126HistoryDto) {
+    const updateData: any = {};
+    if (data.action !== undefined) updateData.action = data.action;
+    if (data.fromStatus !== undefined) updateData.fromStatus = data.fromStatus;
+    if (data.toStatus !== undefined) updateData.toStatus = data.toStatus;
+    if (data.message !== undefined) updateData.message = data.message;
+    if (data.endedAt !== undefined) updateData.endedAt = data.endedAt ? new Date(data.endedAt) : null;
+    
     return this.db.request126History.update({
       where: { id },
-      data: {
-        ...data,
-        endedAt: data.endedAt ? new Date(data.endedAt) : undefined,
-      },
+      data: updateData,
       include: { 
         request: {
           include: {
