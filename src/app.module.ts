@@ -22,6 +22,11 @@ import { Request126HistoryModule } from './request126-history/request126-history
 import { DocumentModule } from './document/document.module';
 import { DocumentAssociationModule } from './document-association/document-association.module';
 import { MedicalReportModule } from './medical-report/medical-report.module';
+import { InspectionModule } from './inspection/inspection.module';
+import { InspectionInspectorModule } from './inspection-inspector/inspection-inspector.module';
+import { PqrSectionModule } from './pqr-section/pqr-section.module';
+import { PqrItemModule } from './pqr-item/pqr-item.module';
+import { PqrAnswerModule } from './pqr-answer/pqr-answer.module';
 
 @Module({
   imports: [
@@ -41,8 +46,13 @@ import { MedicalReportModule } from './medical-report/medical-report.module';
     Request126Module,
     Request126HistoryModule,
     DocumentModule,
-  MedicalReportModule,
+    MedicalReportModule,
     DocumentAssociationModule,
+    InspectionModule,
+    InspectionInspectorModule,
+    PqrSectionModule,
+    PqrItemModule,
+    PqrAnswerModule,
   ],
   controllers: [AppController],
   providers: [
