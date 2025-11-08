@@ -359,7 +359,7 @@ export class Request126Service {
     });
   }
 
-  async sendBackToManager(id: number, actor: any) {
+  async sendBackToManager(id: number, actor: any, message?: string) {
     const actorId: number = actor?.id;
     if (!actorId) {
       throw new BadRequestException('Invalid actor');
@@ -433,7 +433,10 @@ export class Request126Service {
       }
 
       // Status changes back to pendingAssign and assigned to manager
-      const toStatus = 'pendingAssign';
+      const toStatus = 'pendingDecision';
+
+      // Use provided message or default message
+      const finalMessage = message || 'Request sent back to manager for final decision.';
 
       // Create history entry
       await tx.request126History.create({
@@ -444,7 +447,7 @@ export class Request126Service {
           fromStatus: currentStatus as any,
           toStatus: toStatus as any,
           toAssigneeId: managerId,
-          message: `Request sent back to manager for final decision.`,
+          message: finalMessage,
           endedAt: null,
         },
       });
@@ -487,8 +490,8 @@ export class Request126Service {
       }
 
       const currentStatus = lastHistory.toStatus;
-      if (currentStatus !== 'pendingAssign') {
-        throw new BadRequestException(`Request must be in pendingAssign status to approve. Current status: ${currentStatus}`);
+      if (currentStatus !== 'pendingDecision') {
+        throw new BadRequestException(`Request must be in pendingDecision status to approve. Current status: ${currentStatus}`);
       }
 
       // Verify the actor is the current assignee (manager)
@@ -550,8 +553,8 @@ export class Request126Service {
       }
 
       const currentStatus = lastHistory.toStatus;
-      if (currentStatus !== 'pendingAssign') {
-        throw new BadRequestException(`Request must be in pendingAssign status to reject. Current status: ${currentStatus}`);
+      if (currentStatus !== 'pendingDecision') {
+        throw new BadRequestException(`Request must be in pendingDecision status to reject. Current status: ${currentStatus}`);
       }
 
       // Verify the actor is the current assignee (manager)

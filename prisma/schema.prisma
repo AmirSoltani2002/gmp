@@ -331,29 +331,6 @@ model quickReport {
   @@map("quick_reports")
 }
 
-enum PatientGender {
-  male
-  female
-}
-
-enum Request126Status {
-  nowhere
-  draft
-  pendingAssign
-  pendingReview
-  approved
-  rejected
-}
-
-enum Request126Action {
-  create
-  submit
-  assign
-  review
-  approve
-  reject
-}
-
 model Inspection {
   id         Int                   @id @default(autoincrement())
   companyId  Int
@@ -414,3 +391,27 @@ model pqrAnswer {
   @@index([itemId])
 }
 
+
+enum PatientGender {
+  male
+  female
+}
+
+enum Request126Status {
+  nowhere
+  draft
+  pendingAssign
+  pendingReview
+  pendingDecision
+  approved
+  rejected
+}
+
+enum Request126Action {
+  create
+  submit
+  assign
+  review
+  approve
+  reject
+}

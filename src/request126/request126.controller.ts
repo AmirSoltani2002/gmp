@@ -15,6 +15,7 @@ import { CreateRequest126Dto } from './dto/create-request126.dto';
 import { UpdateRequest126Dto } from './dto/update-request126.dto';
 import { FindAllRequest126Dto } from './dto/find-all-request126.dto';
 import { AssignRequest126Dto } from './dto/assign-request126.dto';
+import { SendBackRequest126Dto } from './dto/send-back-request126.dto';
 import { MethodPermissions, Roles } from '../auth/roles.decorator';
 import { ROLES } from '../common/interface';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
@@ -111,19 +112,20 @@ export class Request126Controller {
 
   @Post(':id/send-back')
   @Roles([ROLES.IFDAUSER, ROLES.SYSTEM])
-  @ApiOperation({ summary: 'Send request back to manager for final decision (changes status to pendingAssign)' })
+  @ApiOperation({ summary: 'Send request back to manager for final decision (changes status to pendingDecision)' })
   @ApiResponse({ status: 200, description: 'Request sent back to manager successfully' })
   @ApiResponse({ status: 400, description: 'Request not in pendingReview status or insufficient permissions' })
   @ApiResponse({ status: 404, description: 'Request126 not found' })
   sendBackToManager(
     @Param('id', ParseIntPipe) id: number,
+    @Body() sendBackRequest126Dto: SendBackRequest126Dto,
     @NestRequest() req: any,
   ) {
     const actor = req['user'];
     if (!actor) {
       throw new BadRequestException('Invalid actor');
     }
-    return this.request126Service.sendBackToManager(id, actor);
+    return this.request126Service.sendBackToManager(id, actor, sendBackRequest126Dto.message);
   }
 
   @Post(':id/approve')
