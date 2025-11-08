@@ -17,7 +17,7 @@ export class DocumentPermission {
         const userCompanyId = user.companies?.[0]?.company?.id;
         const userRole = user.role as ROLES;
 
-        if (userRole === ROLES.SYSTEM) {
+        if (userRole === ROLES.SYSTEM || userRole === ROLES.IFDAMANAGER || userRole === ROLES.IFDAUSER) {
             return { canAccess: true, isRestricted: false };
         }
 
