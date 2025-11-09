@@ -179,45 +179,14 @@ export class Request126Service {
       closedAt: updateRequest126Dto.closedAt ? new Date(updateRequest126Dto.closedAt) : undefined,
     };
 
-    return this.db.$transaction(async (tx) => {
-      const updated = await tx.request126.update({
-        where: { id },
-        data,
-        include: { 
-          company: true, 
-          line: true, 
-          drug: true 
-        },
-      });
-
-      // Build history based on previous entry
-      const lastHistory = await tx.request126History.findFirst({
-        where: { requestId: id },
-        orderBy: { createdAt: 'desc' },
-      });
-      if (!lastHistory) {
-        throw new BadRequestException('No history found for request');
-      }
-      const lastStatus = lastHistory?.toStatus;
-
-      let toAssigneeId = lastHistory?.toAssigneeId;
-      
-      
-      const actorId = actor?.id;
-      await tx.request126History.create({
-        data: {
-          requestId: id,
-          actorId: actorId ?? 0, // will fail if 0 violates FK; assumes auth in place
-          action: 'review',
-          fromStatus: lastStatus as any,
-          toStatus: lastStatus as any,
-          toAssigneeId,
-          message: 'Request updated.',
-          endedAt: null,
-        },
-      });
-
-      return updated;
+    return this.db.request126.update({
+      where: { id },
+      data,
+      include: { 
+        company: true, 
+        line: true, 
+        drug: true 
+      },
     });
   }
 
